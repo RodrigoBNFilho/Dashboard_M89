@@ -25,7 +25,7 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
 .section-header {
   background: var(--navy); color: var(--white); padding: 14px 24px;
   font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 }
 .section-header .period-toggle {
   margin-left: auto; display: flex; gap: 0;
@@ -228,6 +228,21 @@ table.perf-table .col-sep { border-left: 2px solid var(--navy); }
   header { padding: 14px 8px; }
   header h1 { font-size: 18px; }
   header .subtitle { font-size: 12px; }
+
+  /* Section header (CARTEIRA ATUAL / HISTORICO): periodo vai pra linha de baixo */
+  .section-header {
+    padding: 12px 14px; font-size: 14px; gap: 8px;
+  }
+  .section-header .period-toggle {
+    margin-left: 0; flex: 1 1 100%; justify-content: stretch;
+  }
+  .section-header .period-toggle button {
+    flex: 1; padding: 6px 8px; font-size: 11px; text-align: center;
+  }
+  .section-header .period-toggle select {
+    flex: 1; min-width: 0;
+  }
+  .badge-live { font-size: 10px; padding: 2px 8px; }
 
   /* KPIs no topo: 2 colunas em vez de 3-4 */
   .top-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
