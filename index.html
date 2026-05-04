@@ -1039,16 +1039,13 @@ function setBarMode(section, mode) {
   container.querySelectorAll('.toggle-btn').forEach(b => {
     if (b.textContent.trim() === modeMap[mode]) b.classList.add('active');
   });
-  const canvasId = section === 'current' ? 'bar-current' : 'bar-hist';
-  const key = section === 'current' ? DATA.latest_month : getSelectedKey();
-  const p = DATA.portfolios[key];
-  if (!p) return;
-  // Recomputa o agregado do periodo selecionado (mes/tri/ytd) para preservar
-  // o IBOV de referencia na legenda do modo Performance
-  const periodMd = periodMode[section];
-  const periodKeys = getPeriodKeys(key, periodMd);
-  const periodAgg = aggregatePeriod(periodKeys);
-  renderBar(canvasId, periodAgg.stocksAgg, mode, periodAgg);
+  // Re-renderiza tudo da secao para garantir periodAgg correto e
+  // legenda IBOV preservada no modo Performance
+  if (section === 'current') {
+    renderCurrent();
+  } else {
+    renderHistorical();
+  }
 }
 
 function renderCurrent() {
@@ -1408,10 +1405,13 @@ function renderCumulative() {
       return idx >= 0 ? info.cum_stock[idx] : null;
     });
 
-    // O Python ja entrega cada segmento com base 100 e ajuste intra-mensal
-    // (variacao entre o preco de compra e o fechamento do mes de entrada),
-    // entao usamos os valores diretamente sem reescalar.
-    const rebasedStock = stockDataAligned;
+    // Rebase: alinha o PRIMEIRO valor nao-nulo do periodo selecionado em 100,
+    // assim todas as series (M89, IBOV, acoes individuais) saem da mesma base
+    // e ficam comparaveis entre si dentro do periodo escolhido.
+    const firstValid = stockDataAligned.find(v => v != null);
+    const rebasedStock = (firstValid != null && firstValid !== 0)
+      ? stockDataAligned.map(v => v == null ? null : (v / firstValid) * 100)
+      : stockDataAligned;
 
     datasets.push({
       label: info.nome,
