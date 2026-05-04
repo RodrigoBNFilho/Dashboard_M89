@@ -267,10 +267,24 @@ table.perf-table .col-sep { border-left: 2px solid var(--navy); }
   .card-title-right strong { font-size: 13px; }
   .toggle-btn { padding: 4px 10px; font-size: 11px; }
 
-  /* Mes selector */
-  .month-selector { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
-  .month-selector select { font-size: 12px; padding: 4px 8px; }
-  .nav-btn { padding: 4px 10px; font-size: 12px; }
+  /* Mes selector: 2 linhas estaveis (selects em cima, navegacao embaixo) */
+  .month-selector {
+    padding: 10px 12px; gap: 8px;
+    display: grid;
+    grid-template-columns: auto 1fr auto 1fr;
+    grid-template-areas:
+      "ano-l ano-s mes-l mes-s"
+      "prev prev next next";
+    align-items: center;
+  }
+  .month-selector label:nth-of-type(1) { grid-area: ano-l; }
+  .month-selector select#sel-year { grid-area: ano-s; }
+  .month-selector label:nth-of-type(2) { grid-area: mes-l; }
+  .month-selector select#sel-month { grid-area: mes-s; }
+  .month-selector .nav-btn.prev { grid-area: prev; }
+  .month-selector .nav-btn.next { grid-area: next; }
+  .month-selector select { font-size: 12px; padding: 4px 8px; width: 100%; min-width: 0; }
+  .nav-btn { padding: 6px 10px; font-size: 12px; width: 100%; }
 
   /* Composicao - donut menor pra caber inteiro */
   .pie-wrap-full { height: 260px; }
@@ -298,16 +312,30 @@ table.perf-table .col-sep { border-left: 2px solid var(--navy); }
     box-shadow: 1px 0 0 var(--border);
   }
 
-  /* Comparar ativos: chips mais compactos */
+  /* Comparar ativos: label vira linha propria, chips ocupam largura total */
   .cum-controls { gap: 12px; }
-  .cum-control-group { width: 100%; }
-  .cum-stock-checks { gap: 5px; }
+  .cum-control-group {
+    width: 100%; flex-wrap: wrap; align-items: flex-start;
+  }
+  .cum-control-group > label { flex: 0 0 100%; margin-bottom: 4px; }
+  .cum-control-group > select { flex: 1; min-width: 0; }
+  .cum-stock-checks {
+    flex: 1 1 100%; gap: 5px; justify-content: flex-start;
+  }
   .cum-stock-checks label { padding: 4px 8px; font-size: 11px; }
   .cum-show-old { width: 100%; padding: 6px 10px; }
 
-  /* Tags de mudancas (Carteira atual) */
-  .changes-box { padding: 12px; }
-  .change-tag { font-size: 11px; padding: 2px 6px; }
+  /* Tags de mudancas: label inline, sem desperdicar espaco vertical */
+  .changes-box {
+    padding: 10px 12px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  .changes-box .metric-label { margin-bottom: 0; flex: 0 0 auto; }
+  .change-tag { font-size: 11px; padding: 2px 6px; margin: 0; }
+
+  /* Comparar ativos: chips alinhados a esquerda e mais compactos */
+  .cum-stock-checks { justify-content: flex-start; }
+  .cum-stock-checks label { padding: 3px 8px; font-size: 11px; }
 
   /* Section spacing */
   .section { margin-bottom: 18px; }
@@ -920,7 +948,7 @@ function renderBar(canvasId, stocks, mode, periodAgg) {
     if (ibovRet != null) {
       datasets.push({
         type: 'line',
-        label: 'Ibov ' + ibovRet.toFixed(2) + '%',
+        label: 'Ibov',
         data: labels.map(() => ibovRet),
         borderColor: '#e67e22',
         backgroundColor: '#e67e22',
