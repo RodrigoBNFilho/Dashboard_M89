@@ -220,6 +220,94 @@ table.perf-table .col-sep { border-left: 2px solid var(--navy); }
   .pie-wrap { width: 100%; }
 }
 
+/* ================== MOBILE (telefone) ================== */
+@media (max-width: 720px) {
+  .container { padding: 0 8px; }
+
+  /* Header e branding */
+  header { padding: 14px 8px; }
+  header h1 { font-size: 18px; }
+  header .subtitle { font-size: 12px; }
+
+  /* KPIs no topo: 2 colunas em vez de 3-4 */
+  .top-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .top-bar .metric-box {
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px; min-width: 0;
+  }
+  .top-bar .metric-box:nth-child(2n) { border-right: none; }
+  .metric-value { font-size: 20px; }
+  .metric-label { font-size: 10px; }
+  .metric-sub { font-size: 10px; }
+
+  /* Card titles empilham toggles e info abaixo do titulo */
+  .card { padding: 14px 12px; }
+  .card-title {
+    font-size: 12px; gap: 8px;
+    align-items: flex-start;
+  }
+  .card-title .toggle-group { margin-left: 0; }
+  .card-title-right { margin-left: 0; font-size: 11px; }
+  .card-title-right strong { font-size: 13px; }
+  .toggle-btn { padding: 4px 10px; font-size: 11px; }
+
+  /* Mes selector */
+  .month-selector { padding: 10px 12px; gap: 8px; flex-wrap: wrap; }
+  .month-selector select { font-size: 12px; padding: 4px 8px; }
+  .nav-btn { padding: 4px 10px; font-size: 12px; }
+
+  /* Composicao - donut menor pra caber inteiro */
+  .pie-wrap-full { height: 260px; }
+  .composition-area .pie-wrap { height: 240px; }
+  .composition-area .comp-table-wrap { max-height: none; }
+  .comp-table { font-size: 11px; }
+  .comp-table td, .comp-table th { padding: 4px 6px; }
+
+  /* Charts - altura reduzida no mobile */
+  .chart-wrap { padding: 12px; }
+  .chart-container { height: 280px; }
+  .bar-chart-container { height: 260px; }
+
+  /* Tabela performance historica: 1a coluna sticky com bg solido + scroll lateral */
+  .perf-table-wrap {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  table.perf-table { font-size: 11px; min-width: 760px; }
+  table.perf-table th { padding: 8px 6px; font-size: 10px; }
+  table.perf-table td { padding: 6px 6px; }
+  table.perf-table th:first-child,
+  table.perf-table td:first-child {
+    padding-left: 8px; padding-right: 8px;
+    box-shadow: 1px 0 0 var(--border);
+  }
+
+  /* Comparar ativos: chips mais compactos */
+  .cum-controls { gap: 12px; }
+  .cum-control-group { width: 100%; }
+  .cum-stock-checks { gap: 5px; }
+  .cum-stock-checks label { padding: 4px 8px; font-size: 11px; }
+  .cum-show-old { width: 100%; padding: 6px 10px; }
+
+  /* Tags de mudancas (Carteira atual) */
+  .changes-box { padding: 12px; }
+  .change-tag { font-size: 11px; padding: 2px 6px; }
+
+  /* Section spacing */
+  .section { margin-bottom: 18px; }
+  .spacer { height: 18px; }
+}
+
+/* ================== MOBILE PEQUENO ================== */
+@media (max-width: 420px) {
+  .top-bar { grid-template-columns: 1fr 1fr; }
+  .metric-value { font-size: 18px; }
+  table.perf-table { font-size: 10px; min-width: 680px; }
+  .chart-container { height: 240px; }
+  .bar-chart-container { height: 220px; }
+}
+
 /* === PASSWORD GATE === */
 #pwd-gate {
   position: fixed; inset: 0; background: var(--navy);
@@ -837,7 +925,24 @@ function renderBar(canvasId, stocks, mode, periodAgg) {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: ibovRet != null, position: 'top', align: 'end',
-                    labels: { boxWidth: 16, font: { size: 11 } } },
+                    labels: {
+                      usePointStyle: true,
+                      pointStyle: 'rectRounded',
+                      boxWidth: 10,
+                      boxHeight: 10,
+                      padding: 12,
+                      font: { size: 11, weight: '600' },
+                      generateLabels: (chart) => {
+                        const items = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                        return items.map(it => {
+                          // Padroniza ambas as legendas com quadradinho colorido
+                          it.fillStyle = it.strokeStyle;
+                          it.lineWidth = 0;
+                          it.pointStyle = 'rectRounded';
+                          return it;
+                        });
+                      },
+                    } },
           tooltip: { callbacks: { label: (ctx) => {
             if (ctx.dataset.type === 'line') return ' Ibov: ' + fmtPct(ctx.parsed.y);
             return ' ' + fmtPct(ctx.parsed.y);
@@ -894,7 +999,13 @@ function setBarMode(section, mode) {
   const canvasId = section === 'current' ? 'bar-current' : 'bar-hist';
   const key = section === 'current' ? DATA.latest_month : getSelectedKey();
   const p = DATA.portfolios[key];
-  if (p) renderBar(canvasId, p.stocks, mode);
+  if (!p) return;
+  // Recomputa o agregado do periodo selecionado (mes/tri/ytd) para preservar
+  // o IBOV de referencia na legenda do modo Performance
+  const periodMd = periodMode[section];
+  const periodKeys = getPeriodKeys(key, periodMd);
+  const periodAgg = aggregatePeriod(periodKeys);
+  renderBar(canvasId, periodAgg.stocksAgg, mode, periodAgg);
 }
 
 function renderCurrent() {
