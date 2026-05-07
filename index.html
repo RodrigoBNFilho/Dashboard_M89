@@ -136,11 +136,11 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   color: var(--blue); border-bottom-color: var(--blue);
 }
 .comp-table .stock-link .link-icon {
-  font-size: 11px; opacity: 0.7; margin-left: 2px;
+  font-size: 13px; opacity: 0.7; margin-left: 3px; font-weight: 700;
   display: inline-block; transition: transform 0.15s;
 }
 .comp-table .stock-link:hover .link-icon {
-  opacity: 1; transform: translate(1px, -1px);
+  opacity: 1; transform: translateX(2px);
 }
 .comp-table .color-dot {
   display: inline-block; width: 10px; height: 10px; border-radius: 50%;
@@ -774,7 +774,7 @@ function renderCompTable(containerId, stocks, caixaVal, caixaPeso, pl, mode) {
     const tk = s.ticker;
     const url = tk && links[tk] ? links[tk] : null;
     const nameCell = url
-      ? `<a class="stock-link" href="${url}" target="_blank" rel="noopener" title="Ver relatório de ${s.nome}">${s.nome} <span class="link-icon">&#8599;</span></a>`
+      ? `<a class="stock-link" href="${url}" title="Ver relatório de ${s.nome}">${s.nome} <span class="link-icon">&#8250;</span></a>`
       : s.nome;
     html += `<tr>
       <td><span class="color-dot" style="background:${color}"></span>${nameCell}</td>
