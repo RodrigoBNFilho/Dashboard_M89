@@ -1,0 +1,2395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vale 1T26 - Dashboard Buy-Side</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1419;
+    color: #e6e8eb;
+    line-height: 1.5;
+    font-size: 14px;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+  /* Back button bar */
+  .back-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: rgba(15, 20, 25, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid #2a3441;
+    padding: 10px 0;
+  }
+  .back-bar-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .back-button {
+    display: inline-block;
+    background: #1a2744;
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: box-shadow 0.2s, background 0.2s, transform 0.1s;
+  }
+  .back-button:hover {
+    background: #243763;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #1a3a52 0%, #0d4f3c 100%);
+    padding: 24px 32px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #fff;
+  }
+  header .subtitle {
+    color: #9bb5c7;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .header-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .metric-pill {
+    background: rgba(255,255,255,0.08);
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 3px solid #4ade80;
+  }
+  .metric-pill .label { font-size: 11px; color: #9bb5c7; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric-pill .value { font-size: 18px; font-weight: 600; color: #fff; margin-top: 2px; }
+  .metric-pill .delta { font-size: 11px; margin-top: 2px; }
+  .metric-pill.neg { border-left-color: #f87171; }
+  .metric-pill.neutral { border-left-color: #fbbf24; }
+  .pos { color: #4ade80; }
+  .neg { color: #f87171; }
+  .neut { color: #fbbf24; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: #1a2027;
+    padding: 6px;
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 10px 18px;
+    background: transparent;
+    color: #9bb5c7;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { background: #252d36; color: #fff; }
+  .tab.active { background: #2563eb; color: #fff; }
+
+  /* Tab Content */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Cards */
+  .grid { display: grid; gap: 16px; margin-bottom: 16px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  .card {
+    background: #1a2027;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #2a3441;
+    transition: border 0.2s;
+  }
+  .card:hover { border-color: #3b4a5c; }
+  .card h3 {
+    font-size: 14px;
+    color: #4ade80;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .card h3.cu { color: #f59e0b; }
+  .card h3.ni { color: #10b981; }
+  .card h3.fe { color: #6366f1; }
+  .card h3.risk { color: #f87171; }
+
+  /* Chart container */
+  .chart-container {
+    position: relative;
+    height: 280px;
+    margin-top: 8px;
+  }
+  .chart-container.tall { height: 340px; }
+  .chart-container.short { height: 220px; }
+
+  /* Metric rows */
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #2a3441;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-row .label { color: #9bb5c7; font-size: 13px; }
+  .metric-row .val { font-weight: 600; color: #fff; font-family: 'SF Mono', monospace; }
+
+  /* Expandable */
+  details {
+    background: #232b35;
+    border-radius: 8px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+  details summary {
+    padding: 12px 16px;
+    cursor: pointer;
+    list-style: none;
+    color: #fff;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  details summary::after {
+    content: '+';
+    font-size: 18px;
+    color: #4ade80;
+    transition: transform 0.2s;
+  }
+  details[open] summary::after { content: '−'; }
+  details summary:hover { background: #2a3441; }
+  details .content {
+    padding: 12px 16px 16px;
+    color: #c8d3df;
+    font-size: 13px;
+    line-height: 1.6;
+    border-top: 1px solid #2a3441;
+  }
+  details .content ul { padding-left: 18px; margin-top: 6px; }
+  details .content li { margin-bottom: 4px; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 8px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #2a3441;
+  }
+  th {
+    background: #232b35;
+    color: #9bb5c7;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  td.num { font-family: 'SF Mono', monospace; text-align: right; }
+  tr:hover { background: rgba(255,255,255,0.02); }
+
+  /* Highlight bullets */
+  .highlight-list { list-style: none; }
+  .highlight-list li {
+    padding: 12px 14px;
+    background: #232b35;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid #4ade80;
+    font-size: 13px;
+  }
+  .highlight-list li strong { color: #fff; }
+  .highlight-list li.neg { border-left-color: #f87171; }
+  .highlight-list li.neut { border-left-color: #fbbf24; }
+
+  /* Section title */
+  .section-title {
+    font-size: 16px;
+    color: #fff;
+    margin: 20px 0 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: #2563eb;
+    border-radius: 2px;
+  }
+
+  /* Sell side comparison */
+  .sellside-card {
+    background: #232b35;
+    border-radius: 10px;
+    padding: 16px;
+    border-top: 3px solid #2563eb;
+  }
+  .sellside-card.jpm { border-top-color: #4ade80; }
+  .sellside-card.btg { border-top-color: #fbbf24; }
+  .sellside-card.ubs { border-top-color: #f87171; }
+  .sellside-card h4 {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .sellside-card .pt {
+    font-size: 13px;
+    color: #9bb5c7;
+    margin-bottom: 10px;
+  }
+  .sellside-card .quote {
+    font-style: italic;
+    color: #c8d3df;
+    font-size: 12px;
+    border-left: 2px solid #4ade80;
+    padding-left: 10px;
+    margin: 8px 0;
+  }
+
+  /* Stance box */
+  .stance-box {
+    background: linear-gradient(135deg, #1a3a52 0%, #0d4f3c 100%);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+  .stance-box h3 { color: #fff; margin-bottom: 12px; font-size: 16px; }
+  .stance-box .stance-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    color: #c8d3df;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .stance-box .stance-row:last-child { border: none; }
+  .stance-box .stance-row strong { color: #fff; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: #6b7785;
+    font-size: 11px;
+    margin-top: 32px;
+    padding: 16px;
+  }
+
+  /* Tooltip / context */
+  .ctx { color: #9bb5c7; font-size: 12px; margin-top: 4px; font-style: italic; }
+
+  /* Progress bars */
+  .progress-row {
+    margin: 8px 0;
+  }
+  .progress-row .label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+  .progress-row .progress-bar {
+    height: 8px;
+    background: #2a3441;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-row .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80, #22c55e);
+    border-radius: 4px;
+  }
+  .progress-row .progress-fill.warn { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .progress-row .progress-fill.neg { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+  /* Valuation inputs */
+  .val-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 900px) { .val-layout { grid-template-columns: 1fr; } }
+  .input-group {
+    margin-bottom: 12px;
+  }
+  .input-group label {
+    display: block;
+    color: #9bb5c7;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .input-group input {
+    width: 100%;
+    background: #232b35;
+    border: 1px solid #2a3441;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: 'SF Mono', monospace;
+    font-size: 14px;
+    transition: border 0.2s;
+  }
+  .input-group input:focus {
+    outline: none;
+    border-color: #4ade80;
+    background: #1a2027;
+  }
+  .input-group .helper {
+    color: #6b7785;
+    font-size: 10px;
+    margin-top: 2px;
+    font-style: italic;
+  }
+  .reset-btn {
+    width: 100%;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .reset-btn:hover { background: #1d4ed8; }
+
+  .val-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .val-table th {
+    background: #232b35;
+    color: #9bb5c7;
+    padding: 8px 10px;
+    text-align: right;
+    border-bottom: 1px solid #2a3441;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+  .val-table th:first-child { text-align: left; }
+  .val-table td {
+    padding: 8px 10px;
+    text-align: right;
+    border-bottom: 1px solid #2a3441;
+    font-family: 'SF Mono', monospace;
+  }
+  .val-table td:first-child {
+    text-align: left;
+    color: #9bb5c7;
+    font-family: -apple-system, sans-serif;
+  }
+  .val-table tr.highlight { background: rgba(74,222,128,0.06); }
+  .val-table tr.highlight td { color: #fff; font-weight: 600; }
+  .val-table tr.scenario-row { background: #232b35; }
+  .val-table tr.scenario-row td { color: #9bb5c7; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .val-table .pos-cell { color: #4ade80; font-weight: 600; }
+  .val-table .neg-cell { color: #f87171; font-weight: 600; }
+
+  /* Thesis one-pager styles */
+  .thesis-hero {
+    background: linear-gradient(135deg, #1a3a52 0%, #0d4f3c 100%);
+    padding: 28px 32px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .thesis-hero .label {
+    color: #4ade80;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .thesis-hero h2 {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 12px;
+    border: none;
+    padding: 0;
+    text-transform: none;
+  }
+  .thesis-hero .sub {
+    color: #c8d3df;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .pillar-card {
+    background: #1a2027;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #2a3441;
+    border-top: 4px solid #4ade80;
+  }
+  .pillar-card .icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(74,222,128,0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #4ade80;
+  }
+  .pillar-card h4 {
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .pillar-card p {
+    color: #c8d3df;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .pillar-card .key-num {
+    display: inline-block;
+    background: rgba(74,222,128,0.12);
+    color: #4ade80;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', monospace;
+    font-weight: 600;
+    font-size: 12px;
+    margin: 0 2px;
+  }
+
+  .risk-pair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 800px) { .risk-pair { grid-template-columns: 1fr; } }
+  .risk-card {
+    background: #1a2027;
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid #2a3441;
+    border-left: 4px solid #f87171;
+  }
+  .counter-card {
+    background: #1a2027;
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid #2a3441;
+    border-left: 4px solid #4ade80;
+  }
+  .risk-card h4, .counter-card h4 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .risk-card h4 { color: #f87171; }
+  .counter-card h4 { color: #4ade80; }
+  .risk-card p, .counter-card p {
+    color: #c8d3df;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .risk-card .topic, .counter-card .topic {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  .vs-divider {
+    align-self: center;
+    color: #6b7785;
+    font-weight: 700;
+    font-size: 13px;
+    background: #232b35;
+    padding: 8px 12px;
+    border-radius: 50%;
+    border: 1px solid #2a3441;
+  }
+  @media (max-width: 800px) { .vs-divider { display: none; } }
+
+  .ratio-viz {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+  .ratio-box {
+    background: #232b35;
+    padding: 18px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .ratio-box .ratio-label {
+    color: #9bb5c7;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .ratio-box .ratio-val {
+    color: #fff;
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'SF Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .ratio-box .ratio-sub {
+    color: #c8d3df;
+    font-size: 12px;
+  }
+  .ratio-box.current .ratio-val { color: #fbbf24; }
+  .ratio-box.target .ratio-val { color: #4ade80; }
+
+  /* Report styles */
+  .report {
+    max-width: 920px;
+    margin: 0 auto;
+    background: #1a2027;
+    padding: 40px 48px;
+    border-radius: 12px;
+    border: 1px solid #2a3441;
+  }
+  .report h1 {
+    font-size: 22px;
+    color: #fff;
+    margin-bottom: 4px;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 8px;
+  }
+  .report .report-sub {
+    color: #9bb5c7;
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+  .report h2 {
+    color: #4ade80;
+    font-size: 17px;
+    margin: 24px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+    border-left: 3px solid #4ade80;
+    padding-left: 10px;
+  }
+  .report h3 {
+    color: #fff;
+    font-size: 14px;
+    margin: 16px 0 8px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    border: none;
+    padding: 0;
+  }
+  .report h4 {
+    color: #c8d3df;
+    font-size: 13px;
+    margin: 12px 0 6px;
+    font-weight: 600;
+  }
+  .report ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px 0;
+  }
+  .report ul ul {
+    margin-left: 20px;
+    margin-top: 4px;
+  }
+  .report ul ul ul {
+    margin-left: 20px;
+  }
+  .report li {
+    padding: 4px 0;
+    color: #c8d3df;
+    font-size: 13.5px;
+    line-height: 1.55;
+    position: relative;
+    padding-left: 18px;
+  }
+  .report li::before {
+    content: '•';
+    position: absolute;
+    left: 4px;
+    color: #4ade80;
+    font-weight: bold;
+  }
+  .report ul ul li::before { content: '◦'; color: #6b7785; }
+  .report ul ul ul li::before { content: '▪'; color: #6b7785; font-size: 10px; top: 6px; }
+  .report li strong { color: #fff; }
+  .report .report-meta {
+    background: #232b35;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: #9bb5c7;
+    border-left: 3px solid #2563eb;
+  }
+  .report .stance-final {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #1a3a52 0%, #0d4f3c 100%);
+    border-radius: 8px;
+  }
+  .report .stance-final h2 { color: #fff; border-color: #fff; }
+  @media print {
+    body { background: #fff; color: #000; }
+    .container { max-width: 100%; padding: 0; }
+    header, .tabs { display: none; }
+    .tab-content { display: block !important; }
+    .report { background: #fff; color: #000; border: none; padding: 20px; }
+    .report h1, .report h2, .report h3 { color: #000; }
+    .report li { color: #333; }
+    .report li strong { color: #000; }
+  }
+</style>
+</head>
+<body>
+<div class="back-bar">
+  <div class="back-bar-inner">
+    <a href="index.html" class="back-button">← Voltar ao Dashboard</a>
+  </div>
+</div>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <h1>VALE 1T26 — Dashboard Buy-Side</h1>
+    <div class="subtitle">VALE3 R$84,4 | VALE US$16,9 | Reação pós-resultado: -6%</div>
+    <div class="header-metrics">
+      <div class="metric-pill">
+        <div class="label">EBITDA Proforma</div>
+        <div class="value">US$3,9B</div>
+        <div class="delta pos">+21% YoY</div>
+      </div>
+      <div class="metric-pill neutral">
+        <div class="label">vs Consenso</div>
+        <div class="value">-3,3%</div>
+        <div class="delta neut">Pequeno miss</div>
+      </div>
+      <div class="metric-pill">
+        <div class="label">FCF Recorrente</div>
+        <div class="value">US$813M</div>
+        <div class="delta pos">+61% YoY</div>
+      </div>
+      <div class="metric-pill neg">
+        <div class="label">Dívida Expandida</div>
+        <div class="value">US$17,8B</div>
+        <div class="delta neg">+14% QoQ</div>
+      </div>
+      <div class="metric-pill neutral">
+        <div class="label">Multiplo 26E</div>
+        <div class="value">4,95x</div>
+        <div class="delta neut">vs setor 6,5x</div>
+      </div>
+      <div class="metric-pill">
+        <div class="label">Net Debt/EBITDA</div>
+        <div class="value">0,8x</div>
+        <div class="delta pos">Confortável</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="show('tese', this)">Tese</button>
+    <button class="tab" onclick="show('destaques', this)">Destaques</button>
+    <button class="tab" onclick="show('panorama', this)">Panorama</button>
+    <button class="tab" onclick="show('financeiro', this)">Financeiro</button>
+    <button class="tab" onclick="show('iron', this)">Minério</button>
+    <button class="tab" onclick="show('cobre', this)">Cobre</button>
+    <button class="tab" onclick="show('niquel', this)">Níquel</button>
+    <button class="tab" onclick="show('perspectivas', this)">Perspectivas</button>
+    <button class="tab" onclick="show('multiplos', this)">Múltiplos</button>
+    <button class="tab" onclick="show('valuation', this)">Valuation</button>
+    <button class="tab" onclick="show('sellside', this)">Sell Side</button>
+    <button class="tab" onclick="show('relatorio', this)">Relatório</button>
+  </div>
+
+  <!-- DESTAQUES -->
+  <div id="destaques" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>EBITDA Trajetória Trimestral (US$M)</h3>
+        <div class="chart-container"><canvas id="chartEbitdaTri"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>EBITDA por Segmento — 1T25 vs 1T26 (US$M)</h3>
+        <div class="chart-container"><canvas id="chartEbitdaSeg"></canvas></div>
+      </div>
+    </div>
+    <div class="section-title">Highlights do Trimestre</div>
+    <ul class="highlight-list">
+      <li class="neut"><strong>EBITDA abaixo do consenso, mas operacional sólido:</strong> US$3,9B (+21% YoY), -3,3% vs consenso; VBM -6,3% mesmo com crescimento forte por ajustes provisórios de preço (~US$140M)</li>
+      <li><strong>Demanda resiliente apesar da guerra:</strong> volumes redirecionados para Ásia, China com altos-fornos a ~90%; choque de custo da indústria (+US$5-10/t) é bullish para low-cost como Vale</li>
+      <li class="neg"><strong>Custos no topo do guidance:</strong> C1 US$23,6/t (+12% YoY) pressionado por BRL, sazonalidade e guerra; normalização só a partir do 3T26</li>
+      <li><strong>VBM consolidando avenida de crescimento:</strong> EBITDA dobrou YoY (US$1,2B); cobre com all-in negativo (-US$642/t), puxado por venda de ouro</li>
+      <li><strong>Dividendo extraordinário no 2S26 ganha probabilidade:</strong> management mais confiante se preços se mantiverem; gatilho é dívida expandida abaixo de US$15B (hoje US$17,8B)</li>
+    </ul>
+  </div>
+
+  <!-- PANORAMA -->
+  <div id="panorama" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Segurança — Barragens em Emergência</h3>
+        <div class="chart-container short"><canvas id="chartBarragens"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Marco material da agenda pós-Brumadinho. Redução de ~85% no estoque de risco. Zero barragens em nível 3 desde ago/2025.</div>
+      </div>
+
+      <div class="card">
+        <h3>Cronograma Pagamentos Brumadinho/Samarco (R$B)</h3>
+        <div class="chart-container short"><canvas id="chartPgto"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Drenagem de FCF gradual e decrescente. ~1/3 da dívida expandida é provisão sem possibilidade de rollover.</div>
+      </div>
+
+      <div class="card">
+        <h3>China</h3>
+        <div class="metric-row"><span class="label">Utilização altos-fornos</span><span class="val">~90%</span></div>
+        <div class="metric-row"><span class="label">Estoques portuários</span><span class="val">166 Mt</span></div>
+        <div class="metric-row"><span class="label">Estoque Vale (variação QoQ)</span><span class="val pos">-10 Mt</span></div>
+        <div class="ctx">Produção de aço estável; infraestrutura + manufatura compensando setor imobiliário fraco.</div>
+        <details style="margin-top:12px">
+          <summary>Por que isso importa para a tese</summary>
+          <div class="content">
+            Tese da Vale depende de China continuar absorvendo ~70% do trade global. Risco estrutural de longo prazo via uso crescente de sucata e minério de baixa qualidade. No curto prazo, equilíbrio S/D sustenta preço.
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h3>Guerra Irã</h3>
+        <div class="metric-row"><span class="label">Impacto líquido na oferta</span><span class="val neut">Neutro</span></div>
+        <div class="metric-row"><span class="label">Choque na curva de custo</span><span class="val pos">+US$5-10/t</span></div>
+        <div class="metric-row"><span class="label">Volume em risco se preço cair US$10/t</span><span class="val">~50 Mt</span></div>
+        <div class="ctx">Assimétrico — 4º quartil mais impactado. Bullish para low-cost producers como Vale.</div>
+        <details style="margin-top:12px">
+          <summary>Hedge protection</summary>
+          <div class="content">
+            <ul>
+              <li>70% bunker oil 2026 hedgado via Brent collar (>US$80/bbl)</li>
+              <li>~100% do freight contratado para 2026</li>
+              <li>Reduz volatilidade, mas limita upside se óleo cair</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h3 class="risk">Simandou</h3>
+        <div class="metric-row"><span class="label">Produção 1T26</span><span class="val">1,5 Mt</span></div>
+        <div class="metric-row"><span class="label">Expectativa Vale 2026</span><span class="val">10-15 Mt</span></div>
+        <div class="metric-row"><span class="label">Guidance Rio Tinto 2026</span><span class="val">5-10 Mt</span></div>
+        <div class="ctx">Surpresa positiva: minério com alumina/sílica alta — precisa ser blendado com Carajás low-alumina.</div>
+        <details style="margin-top:12px">
+          <summary>Bull vs Bear case</summary>
+          <div class="content">
+            <strong>Bull (curto prazo):</strong> ramp-up lento + qualidade abaixo do esperado + Vale é único produtor seaborne de minério low-alumina em escala<br><br>
+            <strong>Bear (médio-longo prazo):</strong> 60-120 Mtpa em ramp-up até 2030 pressionará prêmio de qualidade. Vale resposta defensiva: Mid-Grade Carajás 50→55 Mt + PFC China ~40 Mt/ano.
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCEIRO -->
+  <div id="financeiro" class="tab-content">
+    <div class="card">
+      <h3>EBITDA Bridge YoY (US$M)</h3>
+      <div class="chart-container tall"><canvas id="chartBridge"></canvas></div>
+      <div class="ctx" style="margin-top:8px">70% do crescimento veio de preço — qualidade questionável. FX cobrou pesado.</div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Dívida Expandida — Evolução (US$B)</h3>
+        <div class="chart-container short"><canvas id="chartDivida"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Afastou-se do centro da faixa-alvo. Gatilho de retorno extra: abaixo de US$15B.</div>
+      </div>
+
+      <div class="card">
+        <h3>FCF Recorrente Trimestral (US$M)</h3>
+        <div class="chart-container short"><canvas id="chartFCF"></canvas></div>
+        <div class="ctx" style="margin-top:8px">FCF sazonal — 1T tipicamente fraco por working capital. Conversão EBITDA→FCF caiu para 21%.</div>
+      </div>
+
+      <div class="card">
+        <h3>Composição Dívida Expandida (US$B)</h3>
+        <div class="chart-container short"><canvas id="chartDividaComp"></canvas></div>
+        <div class="ctx" style="margin-top:8px">~26% (~1/3) é provisão Brumadinho/Samarco — não-administrável, cai estruturalmente entre 2026-2027.</div>
+      </div>
+
+      <div class="card">
+        <h3>Alocação de Capital (US$M)</h3>
+        <div class="chart-container short"><canvas id="chartAloc"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Buyback simbólico (US$75M). Mensagem: 2S26 com mix mais equilibrado entre dividendo extra e recompra.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IRON ORE -->
+  <div id="iron" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 class="fe">C1 Iron Ore — Bridge YoY (US$/t)</h3>
+        <div class="chart-container"><canvas id="chartC1Bridge"></canvas></div>
+        <div class="ctx" style="margin-top:8px">BRL e consumo de estoque foram os principais drivers de pressão de custo.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="fe">All-in Cost Bridge YoY (US$/t)</h3>
+        <div class="chart-container"><canvas id="chartAllinBridge"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Prêmio all-in (-US$1,4/t) mitigou parte da pressão. C1 + custos de parada + distribuição empurraram para topo do guidance.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="fe">Volumes</h3>
+        <div class="metric-row"><span class="label">Produção</span><span class="val">69,7 Mt (+3% YoY)</span></div>
+        <div class="metric-row"><span class="label">Vendas</span><span class="val">68,7 Mt (+4% YoY)</span></div>
+        <div class="metric-row"><span class="label">S11D</span><span class="val pos">19,9 Mt (recorde 1T)</span></div>
+        <div class="metric-row"><span class="label">Brucutu</span><span class="val pos">Recorde produção</span></div>
+        <div class="ctx">Recordes em S11D e Brucutu + ramp-up Capanema e Vargem Grande. Serra Sul +20 inicia 2S26 (adição de 20 Mtpa).</div>
+      </div>
+
+      <div class="card">
+        <h3 class="fe">Preços e Prêmios</h3>
+        <div class="metric-row"><span class="label">Realizado fines</span><span class="val">US$95,8/t (+5% YoY)</span></div>
+        <div class="metric-row"><span class="label">Realizado pellets</span><span class="val">US$133,8/t (-5% YoY)</span></div>
+        <div class="metric-row"><span class="label">61% Fe reference</span><span class="val">US$103,6/t</span></div>
+        <div class="metric-row"><span class="label">Prêmio all-in</span><span class="val pos">+US$6,2/t</span></div>
+        <div class="metric-row"><span class="label">vs 4T25</span><span class="val pos">+US$2,6/t QoQ</span></div>
+        <div class="ctx">Prêmio expandiu materialmente — produtos premium (Mid-Grade Carajás +140% YoY) ganhando tração.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="fe">Mix de Produto Premium (Mt)</h3>
+        <div class="chart-container"><canvas id="chartMixIron"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Estratégia "produtos corretivos" para CMRG China — Mid-Grade escalando 50→55 Mt; PFC China para ~40 Mt/ano.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="fe">Pelotas</h3>
+        <div class="metric-row"><span class="label">Produção</span><span class="val">8,2 Mt (+13,7% YoY)</span></div>
+        <div class="metric-row"><span class="label">Vendas</span><span class="val">7,7 Mt</span></div>
+        <div class="metric-row"><span class="label">EBITDA/t</span><span class="val neg">US$62,2/t (-13% YoY)</span></div>
+        <div class="metric-row"><span class="label">Cash cost/t</span><span class="val">US$76,2/t (+2% YoY)</span></div>
+        <div class="ctx">Margem caiu de US$71,5/t para US$62,2/t — sinal amarelo. Oman parado para manutenção até fim do 3T.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COBRE -->
+  <div id="cobre" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 class="cu">All-in Cost Cobre — Trajetória (US$/t)</h3>
+        <div class="chart-container"><canvas id="chartCuCost"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Break-even negativo pela primeira vez em anos. Driver: ouro com preço e volume mais altos.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="cu">Produção Cobre por Mina (kt)</h3>
+        <div class="chart-container"><canvas id="chartCuProd"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Maior nível desde 2017. Sossego com +81% YoY. Atenção: paralisação 110 dias no 2S26 (SAG mill).</div>
+      </div>
+
+      <div class="card">
+        <h3 class="cu">EBITDA Cobre (US$M)</h3>
+        <div class="chart-container short"><canvas id="chartCuEbitda"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Driver de re-rating mais robusto da Vale. +74% YoY mesmo com ajuste provisório de -US$38M.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="cu">Pipeline VBM Cobre (US$B Capex)</h3>
+        <div class="chart-container short"><canvas id="chartCuPipe"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Trajetória produção: 350-380 kt (2026) → 420-500 kt (2030) → ~700 kt (2035).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NÍQUEL -->
+  <div id="niquel" class="tab-content">
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 class="ni">All-in Cost Níquel — Trajetória (US$/t)</h3>
+        <div class="chart-container"><canvas id="chartNiCost"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Queda massiva de custo (-48% YoY). Drivers: by-products altos, otimização Voisey's Bay, diluição custos fixos.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="ni">Produção Níquel por Origem (kt)</h3>
+        <div class="chart-container"><canvas id="chartNiProd"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Melhor 1T desde 2020. Voisey's Bay estável + comissionamento do segundo forno em Onça Puma.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="ni">EBITDA Níquel (US$M)</h3>
+        <div class="chart-container short"><canvas id="chartNiEbitda"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Sai do prejuízo operacional. Biggest miss vs consenso (-15%), mas trajetória de melhora estrutural intacta.</div>
+      </div>
+
+      <div class="card">
+        <h3 class="ni">Estratégia & Thompson</h3>
+        <div class="metric-row"><span class="label">Foco</span><span class="val">Maximizar geração de caixa</span></div>
+        <div class="metric-row"><span class="label">Break-even cash target</span><span class="val">2027</span></div>
+        <div class="metric-row"><span class="label">Thompson stake (pós-deal)</span><span class="val">18,9%</span></div>
+        <div class="metric-row"><span class="label">Aporte parceiros</span><span class="val">Até US$200M</span></div>
+        <div class="ctx">Sem expansão agressiva. Thompson restructuring é bom uso de capital — desinvestimento parcial em ativo deficitário com offtake preservado.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSPECTIVAS -->
+  <div id="perspectivas" class="tab-content">
+    <div class="section-title">Guidance 2026 — Status no 1T26</div>
+    <div class="card">
+      <div class="progress-row">
+        <div class="label-row"><span>Iron ore: 69,7 Mt / 335-345 Mt</span><span class="pos">20% (on-track)</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>Agglomerates: 8,2 Mt / 30-34 Mt</span><span class="pos">25% (on-track)</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:25%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>Cobre: 102,3 kt / 350-380 kt</span><span class="pos">28% (on-track)</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:28%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>Níquel: 49,3 kt / 175-200 kt</span><span class="pos">26% (on-track)</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:26%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>CAPEX: US$1,1B / US$5,4-5,7B</span><span class="neut">19% (atrasado)</span></div>
+        <div class="progress-bar"><div class="progress-fill warn" style="width:19%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>C1 iron ore: US$23,6/t / guide US$20-21,5/t</span><span class="neg">Topo +10%</span></div>
+        <div class="progress-bar"><div class="progress-fill neg" style="width:100%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>All-in iron ore: US$55,4/t / guide US$52-56/t</span><span class="neut">99% do teto</span></div>
+        <div class="progress-bar"><div class="progress-fill warn" style="width:99%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>Cu all-in: -US$0,6k/t / guide US$1,0-1,5k/t</span><span class="pos">Bem abaixo</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="progress-row">
+        <div class="label-row"><span>Ni all-in: US$8,2k/t / guide US$12-13,5k/t</span><span class="pos">Bem abaixo</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      <div class="ctx" style="margin-top:12px">Premissas oficiais: BRL R$5,25/USD; Brent US$90/bbl; 61% Fe.</div>
+    </div>
+
+    <div class="section-title">Sensibilidades (divulgadas pela Vale)</div>
+    <div class="card">
+      <table>
+        <tr><th>Variável</th><th>Impacto C1 Iron Ore</th><th>Impacto All-in Iron Ore</th><th>Impacto Cobre</th></tr>
+        <tr><td>BRL ±R$0,10/USD</td><td class="num">±US$0,25/t</td><td class="num">±US$0,40/t</td><td class="num">±US$85/t</td></tr>
+        <tr><td>Diesel ±10% (Brasil)</td><td class="num">±US$0,15/t</td><td class="num">±US$0,15/t</td><td class="num">—</td></tr>
+        <tr><td>Brent ±US$10/bbl</td><td class="num">—</td><td class="num">±US$1/t (frete)</td><td class="num">—</td></tr>
+      </table>
+    </div>
+
+    <div class="section-title">Catalisadores de Curto Prazo</div>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>2T26 (jul/2026)</h3>
+        <div class="ctx">Trajetória C1 — define se custo é sazonal ou estrutural. Se romper US$22/t, sell-side corta EBITDA 26E em 3-5%.</div>
+      </div>
+      <div class="card">
+        <h3>Dividendo 3T-4T26</h3>
+        <div class="ctx">Anúncio de extraordinário é o gatilho de re-rating. Condicional a expanded net debt convergir para US$15B.</div>
+      </div>
+      <div class="card">
+        <h3>Serra Sul +20 (2S26)</h3>
+        <div class="ctx">Adição de 20 Mtpa de capacidade Carajás high-grade. Bullish marginal para mix e custo unitário.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTIPLOS -->
+  <div id="multiplos" class="tab-content">
+    <div class="card">
+      <h3>EV/EBITDA 2026E — Vale vs Pares</h3>
+      <div class="chart-container tall"><canvas id="chartMult"></canvas></div>
+      <div class="ctx" style="margin-top:8px">Vale negocia ~24% abaixo da média dos pares iron ore (6,51x). Pure-plays de cobre negociam com prêmio estrutural (~11,2x).</div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Mix de Receita: Vale vs Rio Tinto</h3>
+        <div class="chart-container"><canvas id="chartMixComp"></canvas></div>
+        <div class="ctx" style="margin-top:8px">Rio é mais diversificada (4 commodities); Vale concentrada em Fe + Cu/Ni. Mix shift via VBM aproxima Vale de Rio.</div>
+      </div>
+
+      <div class="card">
+        <h3>Trajetória VBM como % EBITDA Vale</h3>
+        <div class="chart-container"><canvas id="chartVBMTraj"></canvas></div>
+        <div class="ctx" style="margin-top:8px">VBM crescendo de 22% (2025) para 30-35% (long-term). Suporta tese de re-rating gradual.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Vale vs Rio Tinto — Por que o desconto é exagerado</div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 class="pos">A favor de Vale</h3>
+        <div class="metric-row"><span class="label">Qualidade do minério</span><span class="val">Carajás 65% vs Pilbara 60-62% Fe</span></div>
+        <div class="metric-row"><span class="label">Custo iron ore (full year 2025)</span><span class="val">~US$21,5/t vs Rio US$23,5/t</span></div>
+        <div class="metric-row"><span class="label">Iron Ore EBITDA YoY</span><span class="val">Vale flat | Rio -11%</span></div>
+        <div class="metric-row"><span class="label">CAPEX 2026</span><span class="val">Vale US$5,5B | Rio US$11B</span></div>
+        <div class="metric-row"><span class="label">Alavancagem</span><span class="val">Comparável (~0,55-0,8x)</span></div>
+      </div>
+      <div class="card">
+        <h3 class="risk">A favor de Rio Tinto</h3>
+        <div class="metric-row"><span class="label">Política de dividendo</span><span class="val">60% payout 10 anos seguidos</span></div>
+        <div class="metric-row"><span class="label">Diversificação</span><span class="val">4 commodities vs Vale com 2</span></div>
+        <div class="metric-row"><span class="label">Simandou</span><span class="val">Rio é parte do consórcio</span></div>
+        <div class="metric-row"><span class="label">Brazil risk premium</span><span class="val">N/A</span></div>
+        <div class="metric-row"><span class="label">Brumadinho overhang</span><span class="val">N/A</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALUATION -->
+  <div id="valuation" class="tab-content">
+    <div class="ctx" style="margin-bottom:12px; color:#9bb5c7;">Modelo simplificado de valuation. Ajuste as premissas e veja o impacto no preço justo da ação em diferentes cenários de preço de minério. <strong style="color:#fff;">Metodologia: BTG Pactual</strong></div>
+    <div class="val-layout">
+      <!-- Inputs Panel -->
+      <div class="card">
+        <h3>Premissas</h3>
+
+        <div class="input-group">
+          <label>Múltiplo EV/EBITDA Justo (x)</label>
+          <input type="number" id="inMultiple" value="5.0" step="0.1" min="1" max="15" oninput="recalcValuation()">
+          <div class="helper">Vale negocia hoje em ~5,0x. Convergência para Rio = 6,76x.</div>
+        </div>
+
+        <div class="input-group">
+          <label>Net Debt Expandido (US$M)</label>
+          <input type="number" id="inNetDebt" value="15500" step="500" oninput="recalcValuation()">
+          <div class="helper">Hoje em US$17,8B; meta management ~US$15B.</div>
+        </div>
+
+        <div class="input-group">
+          <label>EBITDA Base Metals + Outros (US$M)</label>
+          <input type="number" id="inBmEbitda" value="4200" step="100" oninput="recalcValuation()">
+          <div class="helper">VBM 2026E ~US$4-5B (1T26 anualizado: ~US$4,8B).</div>
+        </div>
+
+        <div class="input-group">
+          <label>Capex Total (US$M)</label>
+          <input type="number" id="inCapex" value="5700" step="100" oninput="recalcValuation()">
+          <div class="helper">Guidance 2026: US$5,4-5,7B.</div>
+        </div>
+
+        <div class="input-group">
+          <label>Volume Iron Ore (Mt)</label>
+          <input type="number" id="inVolume" value="325" step="5" oninput="recalcValuation()">
+          <div class="helper">Guidance 2026: 335-345 Mt; conservador: ~325.</div>
+        </div>
+
+        <div class="input-group">
+          <label>Custo CIF China (US$/t)</label>
+          <input type="number" id="inCostCIF" value="52" step="1" oninput="recalcValuation()">
+          <div class="helper">All-in cost entregue na China (frete + custos).</div>
+        </div>
+
+        <div class="input-group">
+          <label>Preço IO Base (US$/t — 62% Fe)</label>
+          <input type="number" id="inIoBase" value="100" step="1" oninput="recalcValuation()">
+          <div class="helper">Cenários geram em ±5/10/20 deste valor.</div>
+        </div>
+
+        <div class="input-group">
+          <label>Realização vs Benchmark (%)</label>
+          <input type="number" id="inRealization" value="93" step="1" min="50" max="100" oninput="recalcValuation()">
+          <div class="helper">% do benchmark que Vale realiza efetivamente.</div>
+        </div>
+
+        <div class="input-group">
+          <label>Preço Atual da Ação (US$)</label>
+          <input type="number" id="inPrice" value="16.33" step="0.01" oninput="recalcValuation()">
+        </div>
+
+        <div class="input-group">
+          <label># Ações em Circulação (M)</label>
+          <input type="number" id="inShares" value="4268.8" step="10" oninput="recalcValuation()">
+        </div>
+
+        <button class="reset-btn" onclick="resetValuation()">Resetar Premissas</button>
+      </div>
+
+      <!-- Output Panel -->
+      <div>
+        <div class="card">
+          <h3>Cenários de Valuation</h3>
+          <table class="val-table" id="valTable">
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                <th id="hCol1">-10</th>
+                <th id="hCol2">-5</th>
+                <th id="hCol3">Base</th>
+                <th id="hCol4">+5</th>
+                <th id="hCol5">+10</th>
+                <th id="hCol6">+20</th>
+              </tr>
+            </thead>
+            <tbody id="valBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>Preço Justo por Cenário</h3>
+          <div class="chart-container tall"><canvas id="chartValuation"></canvas></div>
+          <div class="ctx" style="margin-top:8px">Linha tracejada: preço atual da ação. Barras verdes/vermelhas indicam upside/downside.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SELL SIDE -->
+  <div id="sellside" class="tab-content">
+    <div class="card">
+      <h3>Price Targets vs Spot (US$)</h3>
+      <div class="chart-container"><canvas id="chartPT"></canvas></div>
+      <div class="ctx" style="margin-top:8px">JPM mais bullish (+10% upside). BTG e UBS com PT abaixo do spot — leitura mais cautelosa.</div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="sellside-card jpm">
+        <h4>JPMorgan — Overweight</h4>
+        <div class="pt">PT US$18,5 | Upside +10%</div>
+        <div class="quote">"Small Miss — We'd Buy On Weakness"</div>
+        <div class="metric-row"><span class="label">EBITDA vs estimativa</span><span class="val neg">-3,4%</span></div>
+        <div class="metric-row"><span class="label">Maior miss</span><span class="val neg">Níquel -29%</span></div>
+        <div class="metric-row"><span class="label">View custos</span><span class="val">Topo do guidance, controlado</span></div>
+        <div class="metric-row"><span class="label">Simandou</span><span class="val pos">Bullish — blending fit</span></div>
+      </div>
+
+      <div class="sellside-card btg">
+        <h4>BTG Pactual — Buy</h4>
+        <div class="pt">PT US$15,0 | Downside -11%</div>
+        <div class="quote">"Some Qs Are Just Less Exciting"</div>
+        <div class="metric-row"><span class="label">EBITDA vs estimativa</span><span class="val neg">-2%</span></div>
+        <div class="metric-row"><span class="label">Surpresa positiva</span><span class="val pos">Pelotas +5% volume</span></div>
+        <div class="metric-row"><span class="label">View custos</span><span class="val">Aceitável, sazonal</span></div>
+        <div class="metric-row"><span class="label">Iron ore 2026E</span><span class="val">US$102/t</span></div>
+      </div>
+
+      <div class="sellside-card ubs">
+        <h4>UBS — Neutral</h4>
+        <div class="pt">PT US$16,0 | Downside -5%</div>
+        <div class="quote">"The Storm After the Calm"</div>
+        <div class="metric-row"><span class="label">EBITDA 2026E (cortado)</span><span class="val neg">-2%/-3%</span></div>
+        <div class="metric-row"><span class="label">Maior preocupação</span><span class="val neg">Cost inflation estrutural</span></div>
+        <div class="metric-row"><span class="label">View custos</span><span class="val neg">Pressão estrutural</span></div>
+        <div class="metric-row"><span class="label">Pair preferido</span><span class="val">Rio Tinto</span></div>
+      </div>
+    </div>
+
+    <div class="section-title">Convergências e Divergências</div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 class="pos">Convergências (consenso real)</h3>
+        <ul style="padding-left:18px; color:#c8d3df; font-size:13px;">
+          <li>Resultado é pequeno miss técnico, não muda tese de longo prazo</li>
+          <li>Provisional pricing VBM (-US$140M) é o ruído principal — reversão parcial esperada no 2T</li>
+          <li>Custo iron ore no topo do guidance — todos reconhecem</li>
+          <li>Retorno ao acionista no 2S26 é o catalisador de curto prazo central</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 class="risk">Divergências (onde alpha é gerado)</h3>
+        <ul style="padding-left:18px; color:#c8d3df; font-size:13px;">
+          <li><strong>JPM:</strong> desconto exagerado + cost curve sobe → buy</li>
+          <li><strong>UBS:</strong> cost inflation é estrutural + Vale fica fair value → neutral, prefere Rio</li>
+          <li><strong>BTG:</strong> meio-termo — barata, mas catalisador imediato fraco</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESE — One Pager -->
+  <div id="tese" class="tab-content active">
+
+    <!-- Thesis Hero -->
+    <div class="thesis-hero">
+      <div class="label">Tese de Investimento — Vale</div>
+      <h2>Empresa em melhor momento operacional, com minério sustentado acima de US$100/t financiando dividendos robustos e VBM acelerando via cobre/níquel beneficiados pelo ouro.</h2>
+    </div>
+
+    <!-- Momento de Vale -->
+    <div class="section-title">Momento de Vale — Por que comprar agora</div>
+    <div class="grid grid-3">
+      <div class="pillar-card">
+        <div class="icon">⚙</div>
+        <h4>Melhora operacional consistente</h4>
+        <p>Recordes de produção em <span class="key-num">S11D</span> e <span class="key-num">Brucutu</span>, ramp-up de Capanema e Vargem Grande, e <span class="key-num">Serra Sul +20</span> entrando em 2S26. Volume +3% YoY com mix premium ganhando tração — Mid-Grade Carajás +140% YoY.</p>
+      </div>
+
+      <div class="pillar-card">
+        <div class="icon">$</div>
+        <h4>Minério sustenta dividendos</h4>
+        <p>Preço do minério resiliente <span class="key-num">>US$100/t</span> (vs expectativa de mercado bem mais cautelosa), com prêmio all-in expandindo para <span class="key-num">+US$6,2/t</span>. Geração de caixa robusta sustenta dividend yield ~8% e gatilho para extraordinário no 2S26.</p>
+      </div>
+
+      <div class="pillar-card">
+        <div class="icon">Cu</div>
+        <h4>VBM em momento ótimo</h4>
+        <p>EBITDA dobrou YoY para <span class="key-num">US$1,2B</span> (30% do total). Cobre com break-even <span class="key-num">-US$642/t</span> beneficiado pelo ouro como subproduto. Níquel saindo do prejuízo, all-in <span class="key-num">-48% YoY</span>. Avenida de crescimento real.</p>
+      </div>
+    </div>
+
+    <!-- Riscos vs Contrapontos -->
+    <div class="section-title">Riscos vs Contrapontos</div>
+
+    <div class="risk-pair">
+      <div class="risk-card">
+        <h4>Risco 1 — Simandou (estrutural)</h4>
+        <div class="topic">Adição de oferta high-grade nos próximos anos</div>
+        <p>Projeto greenfield em Guiné no maior consórcio iron ore do mundo (Rio + CITIC + Baowu). Ramp-up plurianual para 60-120 Mtpa pode pressionar prêmio de qualidade da Vale e desafiar pricing power de Carajás/IOCJ.</p>
+      </div>
+      <div class="vs-divider">vs</div>
+      <div class="counter-card">
+        <h4>Contraponto</h4>
+        <div class="topic">Operação ainda no começo</div>
+        <p>Apenas <strong>1,5 Mt produzido no 1T26</strong> e ramp-up tem se mostrado lento (Rio guida 5-10 Mt para 2026). No 1T, minério veio com qualidade abaixo do esperado (alumina/sílica alta) — precisa ser blendado com Carajás. <strong>Perspectivas de longo prazo, porém, são de minério competitivo</strong> com o da Vale; long shot apostar que a qualidade vai se manter inferior por muito tempo.</p>
+      </div>
+    </div>
+
+    <div class="risk-pair">
+      <div class="risk-card">
+        <h4>Risco 2 — China imobiliária fraca</h4>
+        <div class="topic">Principal comprador global em momento delicado</div>
+        <p>China responde por ~70% do trade global de minério. Setor imobiliário, historicamente principal consumidor de aço, segue em ciclo prolongado de fraqueza estrutural. Risco de cauda relevante para a tese.</p>
+      </div>
+      <div class="vs-divider">vs</div>
+      <div class="counter-card">
+        <h4>Contraponto</h4>
+        <div class="topic">Curto prazo segue saudável; longo prazo é o desafio</div>
+        <p>No curto prazo, <strong>manufatura e infraestrutura estão segurando a demanda</strong> — utilização de altos-fornos em ~90%, produção de aço estável, estoques portuários sob controle. <strong>Mercado tem razão no longo prazo</strong>: imobiliário é problema estrutural e continua sendo o principal vetor de risco para demanda — exige monitoramento constante.</p>
+      </div>
+    </div>
+
+    <div class="risk-pair">
+      <div class="risk-card">
+        <h4>Risco 3 — Custos elevados (curto prazo)</h4>
+        <div class="topic">Pressão sobre FCF do 2S e dividendos</div>
+        <p>C1 em US$23,6/t (+12% YoY) e all-in em US$55,4/t — ambos no topo do guidance. BRL forte + sazonalidade ruim do 1T + efeitos da guerra. Pode comprimir geração de caixa do 2S26 e diminuir capacidade de pagamento de dividendos extraordinários.</p>
+      </div>
+      <div class="vs-divider">vs</div>
+      <div class="counter-card">
+        <h4>Contraponto</h4>
+        <div class="topic">Não é estrutural — sazonalidade + guerra deve ceder</div>
+        <p>Pressão concentrada em fatores <strong>cíclicos (sazonalidade do 1T) e choque de guerra</strong>, não em deterioração estrutural. Tendência é de normalização a partir do 3T26. Vale segue low-cost vs pares — Pilbara fechou 2025 em US$23,5/t (média full year) vs Vale full year ~US$21,5/t.</p>
+      </div>
+    </div>
+
+    <!-- Cenário de Downside -->
+    <div class="card" style="border-left:4px solid #f87171; margin-top:8px;">
+      <h4 style="color:#f87171; font-size:13px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; font-weight:600;">⚠ Cenário que mata a tese</h4>
+      <p style="color:#c8d3df; font-size:13px; line-height:1.65; margin:0;">
+        <strong style="color:#fff;">Combinação dos três riscos materializando ao mesmo tempo:</strong> (i) <strong>custos estruturalmente mais altos</strong>, não passageiros — BRL persistindo forte, inflação real e perdas (como Aliança Energia) que não revertem; (ii) <strong>demanda chinesa enfraquece</strong> mais que o esperado (imobiliário sem estabilização + manufatura desacelerando); (iii) <strong>Simandou acelera ramp-up</strong> com qualidade alinhada às expectativas iniciais. Resultado: <strong style="color:#f87171;">preço do minério abaixo de US$90/t com custo Vale comprimido</strong> — geração de caixa enfraquecida e retorno ao acionista significativamente menor. Vale perde o principal pilar da tese (dividendo) e múltiplo se mantém deprimido.
+      </p>
+    </div>
+
+    <!-- Dinâmica de Múltiplo -->
+    <div class="section-title">Dinâmica de Múltiplo — Catalisador de Re-Rating</div>
+    <div class="card" style="border-top: 4px solid #2563eb;">
+      <h4 style="color:#fff; margin-bottom:14px; font-size:15px; text-transform:none; letter-spacing:0;">Vale negocia com desconto histórico vs Rio Tinto</h4>
+
+      <div class="ratio-viz">
+        <div class="ratio-box current">
+          <div class="ratio-label">Ratio Atual EV/EBITDA (Vale / Rio)</div>
+          <div class="ratio-val">0,73x</div>
+          <div class="ratio-sub">4,95x ÷ 6,76x = 0,73</div>
+        </div>
+        <div class="ratio-box target">
+          <div class="ratio-label">Faixa Histórica EV/EBITDA</div>
+          <div class="ratio-val">0,90-0,95x</div>
+          <div class="ratio-sub">Convergência implica múltiplo Vale ~6,1-6,4x</div>
+        </div>
+      </div>
+
+      <p style="color:#c8d3df; font-size:13px; line-height:1.6; margin-top:8px;">
+        Convergência do ratio EV/EBITDA para a média histórica (0,90) implica múltiplo Vale de <strong style="color:#4ade80;">~6,1x</strong> → upside de <strong style="color:#4ade80;">+23%</strong>. Convergência para 0,95 implica <strong style="color:#4ade80;">+30%</strong>. Sem precisar assumir nenhum re-rating estrutural — apenas o <strong>desconto voltar ao normal</strong>.
+      </p>
+
+      <div style="margin-top:18px; padding:14px 16px; background:rgba(74,222,128,0.08); border-radius:8px; border-left:3px solid #4ade80;">
+        <div style="color:#4ade80; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:6px;">Re-rating extra (cobre)</div>
+        <p style="color:#c8d3df; font-size:13px; line-height:1.6; margin:0;">
+          Sell side aponta <strong>upside adicional</strong> conforme VBM ganha relevância no mix. Mineradoras de cobre puras negociam a <strong style="color:#4ade80;">~11,2x</strong> (vs Vale 4,95x). Trajetória VBM como % do EBITDA: 22% (2025) → 26% (2026E) → <strong>30-35% (long-term)</strong>. À medida que o mix se aproxima de Rio Tinto, justificativa para desconto cai mecanicamente — <strong>tese plurianual de re-rating mecânico</strong>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Cenários de Preço + Premissas -->
+    <div class="section-title">Cenários de Preço — Premissas</div>
+    <div class="grid grid-2" style="margin-top:0;">
+      <div class="card">
+        <h3>Cenários de Preço (US$/ação)</h3>
+        <div class="chart-container short"><canvas id="chartCenarios"></canvas></div>
+        <div class="ctx" style="margin-top:8px;">Cenários derivam da combinação de 3 condições atendidas (Bull: 3/3 | Base: 1-2/3 | Bear: 0/3)</div>
+      </div>
+
+      <div class="card">
+        <h3>As 3 Condições da Tese</h3>
+        <div style="margin-bottom:14px; padding:10px 12px; background:#232b35; border-radius:6px; border-left:3px solid #4ade80;">
+          <div style="color:#4ade80; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; margin-bottom:4px;">Condição 1 — Custos</div>
+          <div style="color:#c8d3df; font-size:13px; line-height:1.5;">Custos voltam ao meio do guidance no 2S26 (C1 ~US$21/t). <strong style="color:#fff;">Impacto: +US$1-2B no EBITDA.</strong></div>
+        </div>
+        <div style="margin-bottom:14px; padding:10px 12px; background:#232b35; border-radius:6px; border-left:3px solid #4ade80;">
+          <div style="color:#4ade80; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; margin-bottom:4px;">Condição 2 — Preço do Minério</div>
+          <div style="color:#c8d3df; font-size:13px; line-height:1.5;">Minério sustentado acima de US$95/t. <strong style="color:#fff;">Impacto: +US$2-3B no EBITDA</strong> vs cenário US$85.</div>
+        </div>
+        <div style="padding:10px 12px; background:#232b35; border-radius:6px; border-left:3px solid #4ade80;">
+          <div style="color:#4ade80; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; margin-bottom:4px;">Condição 3 — Capital Allocation</div>
+          <div style="color:#c8d3df; font-size:13px; line-height:1.5;">Dividendo extra + buyback &gt;US$3B no 2S26. <strong style="color:#fff;">Impacto: expansão de múltiplo</strong> de 5,0x → 5,5-6,0x.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:16px;">
+      <div class="card" style="border-top:3px solid #f87171;">
+        <h3 style="color:#f87171;">Bear (0/3) → US$14</h3>
+        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$14-15B</span></div>
+        <div class="metric-row"><span class="label">Múltiplo</span><span class="val">4,0-4,5x</span></div>
+        <div class="metric-row"><span class="label">Net Debt</span><span class="val">US$17B</span></div>
+        <div class="ctx" style="margin-top:8px;">Custos estruturalmente altos + minério &lt;US$90 + Simandou acelera. Mercado precifica ausência de catalisador e dúvidas estruturais. Piso técnico em ~US$14 (yield ~10% atrai income buyers).</div>
+      </div>
+
+      <div class="card" style="border-top:3px solid #fbbf24;">
+        <h3 style="color:#fbbf24;">Base (1-2/3) → US$16-18</h3>
+        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$16-17B</span></div>
+        <div class="metric-row"><span class="label">Múltiplo</span><span class="val">5,0x (status quo)</span></div>
+        <div class="metric-row"><span class="label">Net Debt</span><span class="val">US$15-17B</span></div>
+        <div class="ctx" style="margin-top:8px;">Trajetória atual mantida — preço OK ou custo OK, não os dois. Range reflete consenso sell-side (BTG US$15 / UBS US$16 / JPM US$18,5). Onde estamos hoje.</div>
+      </div>
+
+      <div class="card" style="border-top:3px solid #4ade80;">
+        <h3 style="color:#4ade80;">Bull (3/3) → US$19-20</h3>
+        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$18-19B</span></div>
+        <div class="metric-row"><span class="label">Múltiplo</span><span class="val">5,5-6,0x</span></div>
+        <div class="metric-row"><span class="label">Net Debt</span><span class="val">&lt;US$15B</span></div>
+        <div class="ctx" style="margin-top:8px;">Preço bom + custo controlado + sinalização clara de capital allocation. Re-rating parcial em direção à média histórica (ratio Vale/Rio voltando para 0,90). Convergência ao PT do JPM.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px; background:#232b35; border:1px solid #2a3441;">
+      <h4 style="color:#9bb5c7; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; font-weight:600;">Cálculo Genérico (todos os cenários)</h4>
+      <div style="font-family:'SF Mono', monospace; font-size:13px; color:#c8d3df; line-height:1.8;">
+        Equity Value = (EBITDA × Múltiplo) − Net Debt Expandido<br>
+        Preço/ação = Equity Value ÷ 4.269M ações<br>
+        <span style="color:#6b7785; font-size:12px;">Sensibilidade: cada 0,5x de múltiplo ≈ ±US$2/ação | cada US$1B de EBITDA ≈ ±US$1,2/ação</span>
+      </div>
+      <div class="ctx" style="margin-top:10px;">
+        Premissas baseadas em valuation comparativa por múltiplo (não DCF — commodities têm baixa previsibilidade de longo prazo). Para sensibilidade interativa por preço de minério, usar a aba <strong style="color:#4ade80;">Valuation</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- RELATÓRIO -->
+  <div id="relatorio" class="tab-content">
+    <div class="report">
+      <h1>Resultado Vale 1T26</h1>
+      <div class="report-sub">Relatório Buy-Side | VALE3 R$84,4 | VALE US$16,9 | Reação pós-resultado: -6%</div>
+
+      <div class="report-meta">
+        <strong style="color:#fff;">Headline:</strong> EBITDA proforma US$3,9B (+21% YoY) ligeiramente abaixo do consenso (-3,3%). Operacional sólido com VBM dobrando, ofuscado por ajustes provisórios de preço (~US$140M) e custos no topo do guidance. Dividendo extraordinário no 2S26 ganha probabilidade.
+      </div>
+
+      <h2>1. Destaques</h2>
+      <ul>
+        <li><strong>EBITDA abaixo do consenso, mas operacional sólido:</strong> US$3,9B (+21% YoY), -3,3% vs consenso; VBM -6,3% mesmo com crescimento forte por ajustes provisórios de preço (~US$140M)</li>
+        <li><strong>Demanda resiliente apesar da guerra:</strong> volumes redirecionados para Ásia, China com altos-fornos a ~90%; choque de custo da indústria (+US$5-10/t) é bullish para low-cost como Vale</li>
+        <li><strong>Custos no topo do guidance:</strong> C1 US$23,6/t (+12% YoY) pressionado por BRL, sazonalidade e guerra; normalização só a partir do 3T26</li>
+        <li><strong>VBM consolidando avenida de crescimento:</strong> EBITDA dobrou YoY (US$1,2B); cobre com all-in negativo (-US$642/t), puxado por venda de ouro</li>
+        <li><strong>Dividendo extraordinário no 2S26 ganha probabilidade:</strong> management mais confiante se preços se mantiverem; gatilho é dívida expandida abaixo de US$15B (hoje US$17,8B)</li>
+      </ul>
+
+      <h2>2. Panorama Geral</h2>
+
+      <h3>Segurança</h3>
+      <ul>
+        <li>Nenhuma barragem em nível 3 de emergência desde agosto/2025, marco relevante da agenda pós-Brumadinho</li>
+        <li>35 barragens em algum nível de emergência em 2020 vs 5 em 2026</li>
+        <li>Pagamentos Brumadinho/Samarco somam R$5,6B em 2026, R$3,1B em 2027, R$2,1B em 2028 e R$3,5B em 2029</li>
+      </ul>
+
+      <h3>VBM IPO</h3>
+      <ul>
+        <li>Carve-out completo, operação estabilizada, próximo passo é crescer (cobre dobrar de tamanho)</li>
+        <li>IPO permanece como opcionalidade futura, sem prioridade</li>
+      </ul>
+
+      <h3>China</h3>
+      <ul>
+        <li>Produção de aço bruto estável. Utilização de altos-fornos em ~90% (nível considerado alto e próximo ao teto)</li>
+        <li>Infraestrutura + manufatura compensando o setor imobiliário mais fraco</li>
+        <li>Estoques portuários em 166 Mt, Vale caiu 10 Mt</li>
+        <li>Uso de minério de baixa qualidade é um desafio de longo prazo</li>
+      </ul>
+
+      <h3>Guerra Irã</h3>
+      <ul>
+        <li>Impacto neutro no balanço de oferta global. Volume que deixaram de exportar para o Oriente Médio foi direcionado para Ásia, especialmente China, que passaram a não receber mais exportações do Irã</li>
+        <li>Curva de custos subiu US$5-10/t globalmente, mas de forma assimétrica. Alguns players foram mais impactados (>US$10/t), produtores com custo baixo, como a Vale, se beneficiaram</li>
+        <li>Empresa estima que se o preço do minério cair US$10/t com custos nesse patamar, ~50 Mt sairiam do mercado (margem negativa)</li>
+      </ul>
+
+      <h3>Simandou</h3>
+      <ul>
+        <li>1,5 Mt produzido no 1T26, expectativa de 10-15 Mt no acumulado de 2026</li>
+        <li>Surpresa positiva é que o minério está vindo com qualidade abaixo do esperado (alta presença de alumina/sílica apesar da alta concentração de Fe). Precisa ser blendado com minério de baixa alumina e Vale é o único produtor em grande escala</li>
+        <li>Ramp-up tende a pressionar os preços, mas isso ocorre ao mesmo tempo que o custo do setor aumentou significativamente. Efeitos acabam offsetando no curto prazo, mas com tendência negativa no caso do fim da guerra e queda do preço</li>
+      </ul>
+
+      <h2>3. Desempenho Financeiro</h2>
+
+      <h3>EBITDA: US$3,9B (+21% YoY); Margem 42%</h3>
+      <ul>
+        <li>Execução operacional sólida nas 3 commodities (volumes e preços melhores)</li>
+        <li>Minério de ferro: US$2,9B (flat YoY); volumes de vendas maiores e melhores prêmios all-in totalmente compensados por custos maiores</li>
+        <li>VBM: US$1,2B (+116% YoY); principal driver de crescimento do EBITDA consolidado. Consenso era de US$1,3B (resultado veio 6,3% abaixo)</li>
+      </ul>
+
+      <h3>Fluxo de Caixa Livre Recorrente: US$813M (+61% YoY)</h3>
+      <ul>
+        <li>Capital de giro consumiu US$863M; estoques mais altos e aumento no contas a receber</li>
+        <li>CAPEX de US$1,1B abaixo do esperado, só 19% do guidance anual</li>
+        <li>Conversão EBITDA → FCF caiu para 21% (vs 37% no 4T25)</li>
+      </ul>
+
+      <h3>Dívida Líquida Expandida: US$17,8B</h3>
+      <ul>
+        <li>Permanece dentro da faixa-alvo (US$10-20B), mas se afastou do centro (objetivo declarado pelo management)</li>
+        <li>Crescimento no trimestre foi explicado pelo pagamento de US$2,7B em dividendos</li>
+        <li>1/3 da dívida é provisão Brumadinho/Samarco, sem possibilidade de rollover. Cronograma de redução acelera entre 2026 e 2027</li>
+        <li>Dívida abaixo de US$15B é o gatilho para aumentar o retorno ao acionista</li>
+      </ul>
+
+      <h3>Alocação de Capital</h3>
+      <ul>
+        <li>Dividendos pagos de US$2,8B</li>
+        <li>Buybacks de US$75M (~5M de ações)</li>
+        <li>Management cada vez mais confiante em pagar dividendo extraordinário + ampliar buyback se os preços de cobre, níquel e minério de ferro se mantiverem. Mix mais equilibrado entre dividendo e recompra (vs predominância de dividendos em 2025 por motivo tributário)</li>
+      </ul>
+
+      <h2>4. Segmentos</h2>
+
+      <h3>4.1 Minério de Ferro</h3>
+
+      <h4>Volumes</h4>
+      <ul>
+        <li>Produção de 69,7 Mt (+3% YoY): recordes em S11D e Brucutu, além do ramp-up de Capanema e Vargem Grande</li>
+        <li>Serra Sul +20 inicia 2S26: projeto de adição de 20 Mt de capacidade, incrementa o volume de high-grade de Carajás</li>
+        <li>Vendas de 68,7 Mt (+4% YoY): produção forte + demanda global resiliente</li>
+      </ul>
+
+      <h4>Preços e Prêmios</h4>
+      <ul>
+        <li>Realizado finos: US$95,8/t (+5% YoY)</li>
+        <li>Prêmio all-in expandiu US$2,6/t: +~US$800M de receita</li>
+      </ul>
+
+      <h4>Custos</h4>
+      <ul>
+        <li>C1 de US$23,6/t (+12% YoY)
+          <ul>
+            <li>Câmbio: +US$1,5/t</li>
+            <li>Consumo de estoque: +US$0,8/t</li>
+          </ul>
+        </li>
+        <li>All-in de US$55,4/t (+8% YoY)
+          <ul>
+            <li>C1: +US$2,6/t</li>
+            <li>Custos de parada: +US$1,1/t</li>
+            <li>Distribuição: +US$1,4/t</li>
+            <li>Prêmios all-in: -US$1,4/t</li>
+          </ul>
+        </li>
+        <li>2º trimestre deve permanecer pressionado, normalização sazonal apenas a partir do 3T</li>
+      </ul>
+
+      <h3>4.2 Cobre</h3>
+      <ul>
+        <li>Produção de 102,3 kt (+13% YoY): maior nível desde 2017
+          <ul>
+            <li>Recordes em Salobo e Sossego (+81% YoY)</li>
+            <li>Paralisação programada de 110 dias em Sossego no 2S26 vai impactar a produção do ano</li>
+          </ul>
+        </li>
+        <li>Preço realizado de US$13,1k/t (+48% YoY): beneficiado pelo LME forte</li>
+        <li>All-in cost de -US$642/t (vs US$1,2k/t no 1T25): break-even negativo
+          <ul>
+            <li>Principal driver são os subprodutos, principalmente o ouro com preço e volume mais altos</li>
+            <li>Salobo: -US$2,2k/t; Sossego: US$736/t</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>4.3 Níquel</h3>
+      <ul>
+        <li>Produção de 49,3 kt: melhor desde o 1T20
+          <ul>
+            <li>Voisey's Bay estável + comissionamento do segundo forno em Onça Puma</li>
+          </ul>
+        </li>
+        <li>Preço realizado de US$17k/t (+5,6% YoY)</li>
+        <li>All-in cost de US$8,2k/t (-48% YoY)
+          <ul>
+            <li>Principal driver foi a receita de subprodutos mais alta (+59% YoY), otimização de Voisey's Bay e diluição de custos fixos</li>
+          </ul>
+        </li>
+        <li>Management focado em maximizar a geração de caixa, não há expansão planejada antes de atingir break-even cash</li>
+      </ul>
+
+      <h2>5. Perspectivas</h2>
+
+      <h3>Premissas Oficiais</h3>
+      <ul>
+        <li>BRL R$5,25/USD; Brent US$90/bbl; 61% Fe</li>
+      </ul>
+
+      <h3>Guidance 2026 (Reafirmado)</h3>
+      <ul>
+        <li>Iron ore: 335-345 Mt | 1T26: 69,7 Mt (on-track)</li>
+        <li>Agglomerates: 30-34 Mt | 1T26: 8,2 Mt (on-track)</li>
+        <li>Cobre: 350-380 kt | 1T26: 102,3 kt (on-track)</li>
+        <li>Níquel: 175-200 kt | 1T26: 49,3 kt (on-track)</li>
+        <li>Capex: US$5,4-5,7B | 1T26: US$1,1B (atrasado, 19%)</li>
+        <li>C1 iron ore: US$20-21,5/t | 1T26: US$23,6/t (topo do range)</li>
+        <li>All-in iron ore: US$52-56/t | 1T26: US$55,4/t (topo do range)</li>
+      </ul>
+
+      <h3>Sensibilidades</h3>
+      <ul>
+        <li>BRL ±R$0,10/USD: ±US$0,25/t no C1, ±US$0,40/t no all-in, ±US$85/t no cobre</li>
+        <li>Diesel ±10%: ±US$0,15/t no C1 e all-in</li>
+        <li>Brent ±US$10/bbl: ±US$1/t no frete (impacta all-in)</li>
+      </ul>
+
+      <h2>6. Múltiplos</h2>
+
+      <h3>Vale negocia abaixo dos pares</h3>
+      <ul>
+        <li>Vale: 4,95x EV/EBITDA 26E</li>
+        <li>Fortescue 5,48x | Rio Tinto 6,76x | BHP 7,30x</li>
+        <li>Média dos pares ex-Vale: 6,51x</li>
+      </ul>
+
+      <h3>Rio Tinto é o peer mais relevante</h3>
+      <ul>
+        <li>Mix mais diversificado: ~60% do EBITDA em minério de ferro e ~40% em cobre e alumínio (vs Vale com 74% Fe / 26% Cu+Ni)</li>
+        <li>Qualidade do minério Vale é superior: Carajás com 65% Fe e baixa alumina/sílica vs Pilbara com 60-62% Fe e teor de impurezas mais alto — produto premium da Vale sustenta margem em ambiente de preço cadente (Iron Ore EBITDA Rio caiu 11% YoY em 2025; Vale entregou flat YoY no 1T26)</li>
+        <li>Custo da Vale segue ~US$2/t menor: Pilbara fechou 2025 em US$23,5/t (média full year, incluindo 2S sazonalmente mais baixo); Vale full year 2025 ~US$21,5/t</li>
+        <li>Alavancagem comparável: Rio ND/EBITDA 0,57x vs Vale 0,8x (ou ~0,55x excluindo Brumadinho/Samarco)</li>
+        <li>Política de dividendo Rio é mais previsível: 60% payout ratio mantido por 10 anos consecutivos (US$6,5B em 2025), enquanto Vale opera com política variável condicionada a preços e nível de dívida — justifica parte do prêmio Rio, mas não os 27% atuais</li>
+      </ul>
+
+      <h3>Mineradoras de cobre puras negociam com prêmio estrutural</h3>
+      <ul>
+        <li>Southern Copper: 15,0x | First Quantum: 11,16x | Antofagasta: 9,29x | Freeport-McMoRan: 9,27x</li>
+        <li>Média Cu peers: ~11,2x</li>
+        <li>Premium reflete tese secular de transição energética, déficit estrutural projetado de cobre e ESG appeal</li>
+        <li>VBM já contribui ~26% do EBITDA 2026E (30% no 1T26), com trajetória para 30-35% no longo prazo — à medida que mix se aproxima do de Rio Tinto, justificativa para desconto diminui mecanicamente</li>
+      </ul>
+
+      <h2>7. Sell Side</h2>
+      <ul>
+        <li><strong>JPMorgan — Overweight | PT US$18,5 (upside +10%)</strong>
+          <ul>
+            <li>Manchete: "Small Miss — We'd Buy On Weakness"</li>
+            <li>EBITDA -3,4% vs JPMe; maior miss em Níquel (-29%)</li>
+            <li>View custos: topo do guidance, controlado</li>
+            <li>Demanda China: estável, S/D balanceado; bullish em choque Irã</li>
+            <li>Dividendo 2026: ~8% yield, mix mais equilibrado</li>
+          </ul>
+        </li>
+        <li><strong>BTG Pactual — Buy | PT US$15,0</strong>
+          <ul>
+            <li>Manchete: "Some Qs Are Just Less Exciting"</li>
+            <li>EBITDA -2% vs BTGe; miss explicado por ajuste provisório (~US$140M)</li>
+            <li>View custos: aceitável, sazonal</li>
+            <li>Surpresa positiva: pelotas (+5% volumes vs BTGe)</li>
+            <li>Iron ore 2026E: US$102/t</li>
+          </ul>
+        </li>
+        <li><strong>UBS — Neutral | PT US$16,0</strong>
+          <ul>
+            <li>Manchete: "The Storm After the Calm"</li>
+            <li>Cortou EBITDA -2%/-3% para 26E/27E</li>
+            <li>Maior preocupação: cost inflation estrutural; exit em US$25,3/t</li>
+            <li>Pair preferido: Rio Tinto (8,5% FCF yield)</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="stance-final">
+        <h2>8. Stance Buy-Side</h2>
+        <ul>
+          <li><strong>View Estrutural:</strong> Overweight</li>
+          <li><strong>View Tático (12 meses):</strong> Neutral</li>
+          <li><strong>Acumular em fraqueza:</strong> &lt; R$78 / US$15,50</li>
+          <li><strong>Trim em rallies:</strong> &gt; R$92 / US$18,50</li>
+          <li><strong>Pair trade:</strong> Long Vale / Short BHP</li>
+          <li><strong>Cenários de preço:</strong> Bull US$19-20 (3 condições atendidas) | Base US$16-18 (2 condições) | Bear US$14 (nenhuma)</li>
+        </ul>
+        <p style="margin-top:14px; color:#c8d3df; font-size:13px; line-height:1.6; padding-left:6px;">
+          Tese estrutural intacta — Vale barata em múltiplo, gerador de caixa, exposição premium a transição energética via VBM. Tese tática enfraquecida — re-rating de curto prazo precisa de gatilho que não veio nesse trimestre. <strong style="color:#fff;">Vale paga para esperar</strong> via FCF yield + dividendo enquanto a tese plurianual se desenrola.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer>Dashboard Vale 1T26 — Relatório Buy-Side | Atualizado em mai/2026</footer>
+</div>
+
+<script>
+// Chart.js global config
+Chart.defaults.color = '#9bb5c7';
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+Chart.defaults.font.size = 11;
+Chart.defaults.borderColor = '#2a3441';
+
+const colors = {
+  green: '#4ade80', red: '#f87171', yellow: '#fbbf24',
+  blue: '#3b82f6', indigo: '#6366f1', amber: '#f59e0b', emerald: '#10b981',
+  greenT: 'rgba(74,222,128,0.2)', redT: 'rgba(248,113,113,0.2)', yellowT: 'rgba(251,191,36,0.2)',
+  blueT: 'rgba(59,130,246,0.2)', indigoT: 'rgba(99,102,241,0.2)'
+};
+
+// Common axis style
+const axisStyle = {
+  ticks: { color: '#9bb5c7' },
+  grid: { color: 'rgba(42,52,65,0.5)' }
+};
+
+const charts = {};
+
+function show(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Resize charts after tab is visible
+  setTimeout(() => {
+    Object.values(charts).forEach(c => { if (c) c.resize(); });
+  }, 50);
+}
+
+// ============ VALUATION FUNCTIONS ============
+const VAL_DEFAULTS = {
+  inMultiple: 5.0,
+  inNetDebt: 15500,
+  inBmEbitda: 4200,
+  inCapex: 5700,
+  inVolume: 325,
+  inCostCIF: 52,
+  inIoBase: 100,
+  inRealization: 93,
+  inPrice: 16.33,
+  inShares: 4268.8
+};
+
+function fmt(num, decimals = 0) {
+  if (!isFinite(num)) return '—';
+  return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function pctFmt(num) {
+  if (!isFinite(num)) return '—';
+  return (num * 100).toFixed(1) + '%';
+}
+
+function resetValuation() {
+  Object.entries(VAL_DEFAULTS).forEach(([id, val]) => {
+    document.getElementById(id).value = val;
+  });
+  recalcValuation();
+}
+
+function recalcValuation() {
+  const i = {
+    multiple: parseFloat(document.getElementById('inMultiple').value) || 0,
+    netDebt: parseFloat(document.getElementById('inNetDebt').value) || 0,
+    bmEbitda: parseFloat(document.getElementById('inBmEbitda').value) || 0,
+    capex: parseFloat(document.getElementById('inCapex').value) || 0,
+    volume: parseFloat(document.getElementById('inVolume').value) || 0,
+    costCIF: parseFloat(document.getElementById('inCostCIF').value) || 0,
+    ioBase: parseFloat(document.getElementById('inIoBase').value) || 0,
+    realization: (parseFloat(document.getElementById('inRealization').value) || 0) / 100,
+    price: parseFloat(document.getElementById('inPrice').value) || 0,
+    shares: parseFloat(document.getElementById('inShares').value) || 1
+  };
+
+  const offsets = [-10, -5, 0, 5, 10, 20];
+  const marketCap = i.price * i.shares;
+  const cashOutBM = 2800; // pagamento Brumadinho/Samarco anual
+  const minDivBaseline = 4000; // EBITDA baseline para min div
+
+  // Update column headers
+  offsets.forEach((off, idx) => {
+    const header = document.getElementById('hCol' + (idx + 1));
+    if (header) {
+      const price = i.ioBase + off;
+      header.textContent = `US$${price}` + (off === 0 ? ' (Base)' : '');
+    }
+  });
+
+  const scenarios = offsets.map(off => {
+    const ioPrice = i.ioBase + off;
+    const ebitdaPerT = ioPrice * i.realization - i.costCIF;
+    const ioEbitda = i.volume * ebitdaPerT;
+    const totalEbitda = ioEbitda + i.bmEbitda;
+    const ev = i.multiple * totalEbitda;
+    const equity = Math.max(ev - i.netDebt, 0);
+    const perShare = equity / i.shares;
+    const upside = i.price > 0 ? perShare / i.price - 1 : 0;
+    const fcfYield = marketCap > 0 ? (totalEbitda - i.capex - 0.06 * i.netDebt - 0.15 * totalEbitda - cashOutBM) / marketCap : 0;
+    const minDivYield = marketCap > 0 ? 0.30 * Math.max(totalEbitda - minDivBaseline, 0) / marketCap : 0;
+    const impliedMult = totalEbitda > 0 ? (marketCap + i.netDebt) / totalEbitda : 0;
+    return { ioPrice, ebitdaPerT, ioEbitda, totalEbitda, ev, equity, perShare, upside, fcfYield, minDivYield, impliedMult };
+  });
+
+  // Build table rows
+  const rows = [
+    { label: 'Preço IO (US$/t)', key: 'ioPrice', fmt: v => `${fmt(v, 0)}`, scenario: true },
+    { label: 'EBITDA/t (US$/t)', key: 'ebitdaPerT', fmt: v => `${fmt(v, 1)}` },
+    { label: 'IO EBITDA (US$M)', key: 'ioEbitda', fmt: v => `${fmt(v, 0)}` },
+    { label: 'Total EBITDA (US$M)', key: 'totalEbitda', fmt: v => `${fmt(v, 0)}` },
+    { label: 'Implied EV (US$M)', key: 'ev', fmt: v => `${fmt(v, 0)}` },
+    { label: 'Equity Value (US$M)', key: 'equity', fmt: v => `${fmt(v, 0)}` },
+    { label: 'Preço Justo (US$/ação)', key: 'perShare', fmt: v => `${fmt(v, 2)}`, highlight: true },
+    { label: 'Upside / Downside', key: 'upside', fmt: v => pctFmt(v), upside: true, highlight: true },
+    { label: 'FCF Yield (recorrente)', key: 'fcfYield', fmt: v => pctFmt(v) },
+    { label: 'Dividend Yield mínimo', key: 'minDivYield', fmt: v => pctFmt(v) },
+    { label: 'Implied EV/EBITDA atual', key: 'impliedMult', fmt: v => `${fmt(v, 2)}x` }
+  ];
+
+  const body = document.getElementById('valBody');
+  body.innerHTML = rows.map(r => {
+    const cls = r.highlight ? 'highlight' : (r.scenario ? 'scenario-row' : '');
+    return `<tr class="${cls}"><td>${r.label}</td>` + scenarios.map(s => {
+      let cellClass = '';
+      let val = r.fmt(s[r.key]);
+      if (r.upside) {
+        cellClass = s[r.key] > 0 ? 'pos-cell' : (s[r.key] < 0 ? 'neg-cell' : '');
+        val = (s[r.key] > 0 ? '+' : '') + val;
+      }
+      return `<td class="${cellClass}">${val}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+
+  // Update chart
+  if (charts.valuation) {
+    const labels = scenarios.map((s, idx) => `US$${s.ioPrice}/t` + (offsets[idx] === 0 ? ' (Base)' : ''));
+    const prices = scenarios.map(s => s.perShare);
+    const colors = scenarios.map(s => s.upside > 0.10 ? '#4ade80' : (s.upside < -0.05 ? '#f87171' : '#fbbf24'));
+    charts.valuation.data.labels = labels;
+    charts.valuation.data.datasets[0].data = prices;
+    charts.valuation.data.datasets[0].backgroundColor = colors;
+    charts.valuation.data.datasets[1].data = Array(6).fill(i.price);
+    charts.valuation.update();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ============ DESTAQUES ============
+  charts.ebitdaTri = new Chart(document.getElementById('chartEbitdaTri'), {
+    type: 'bar',
+    data: {
+      labels: ['1T25', '2T25', '3T25', '4T25', '1T26'],
+      datasets: [{
+        label: 'EBITDA Proforma (US$M)',
+        data: [3115, 4100, 4500, 4834, 3895],
+        backgroundColor: ['#3b4a5c', '#3b4a5c', '#3b4a5c', '#3b4a5c', '#4ade80'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.ebitdaSeg = new Chart(document.getElementById('chartEbitdaSeg'), {
+    type: 'bar',
+    data: {
+      labels: ['Iron Ore', 'Cobre', 'Níquel', 'VBM Total'],
+      datasets: [
+        { label: '1T25', data: [2887, 546, 41, 554], backgroundColor: '#3b4a5c', borderRadius: 4 },
+        { label: '1T26', data: [2906, 949, 277, 1197], backgroundColor: '#4ade80', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // ============ PANORAMA ============
+  charts.barragens = new Chart(document.getElementById('chartBarragens'), {
+    type: 'bar',
+    data: {
+      labels: ['2020', '2026'],
+      datasets: [{
+        label: 'Barragens em emergência',
+        data: [35, 5],
+        backgroundColor: ['#f87171', '#4ade80'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.pgto = new Chart(document.getElementById('chartPgto'), {
+    type: 'bar',
+    data: {
+      labels: ['2026', '2027', '2028', '2029'],
+      datasets: [{
+        label: 'Pagamento (R$B)',
+        data: [5.6, 3.1, 2.1, 3.5],
+        backgroundColor: '#fbbf24',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // ============ FINANCEIRO ============
+  // EBITDA Bridge — waterfall using stacked floating bars
+  const bridgeData = [
+    { label: '1T25', start: 0, end: 3115, color: '#6b7785' },
+    { label: '+Preço', start: 3115, end: 3932, color: '#4ade80' },
+    { label: '+Volume', start: 3932, end: 4109, color: '#4ade80' },
+    { label: '-FX', start: 4109, end: 3874, color: '#f87171' },
+    { label: '-Custos', start: 3874, end: 3774, color: '#f87171' },
+    { label: '+Outros', start: 3774, end: 3798, color: '#4ade80' },
+    { label: '1T26', start: 0, end: 3895, color: '#6366f1' }
+  ];
+  charts.bridge = new Chart(document.getElementById('chartBridge'), {
+    type: 'bar',
+    data: {
+      labels: bridgeData.map(d => d.label),
+      datasets: [{
+        label: 'EBITDA Bridge',
+        data: bridgeData.map(d => [d.start, d.end]),
+        backgroundColor: bridgeData.map(d => d.color),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              const diff = v[1] - v[0];
+              return diff === 0 ? `Valor: US$${v[1]}M` : `Δ ${diff > 0 ? '+' : ''}${diff}M | Total: US$${v[1]}M`;
+            }
+          }
+        }
+      },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.divida = new Chart(document.getElementById('chartDivida'), {
+    type: 'line',
+    data: {
+      labels: ['1T25', '2T25', '3T25', '4T25', '1T26'],
+      datasets: [
+        {
+          label: 'Net Debt Expandido',
+          data: [18.2, 17.0, 16.0, 15.6, 17.8],
+          borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.1)',
+          tension: 0.3, fill: true, pointRadius: 4, pointBackgroundColor: '#f87171'
+        },
+        {
+          label: 'Faixa-alvo (limite superior)',
+          data: [20, 20, 20, 20, 20],
+          borderColor: '#fbbf24', borderDash: [5, 5], pointRadius: 0, fill: false
+        },
+        {
+          label: 'Centro da faixa',
+          data: [15, 15, 15, 15, 15],
+          borderColor: '#4ade80', borderDash: [5, 5], pointRadius: 0, fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { x: axisStyle, y: { ...axisStyle, min: 10, max: 22 } }
+    }
+  });
+
+  charts.fcf = new Chart(document.getElementById('chartFCF'), {
+    type: 'bar',
+    data: {
+      labels: ['1T25', '2T25', '3T25', '4T25', '1T26'],
+      datasets: [{
+        label: 'FCF Recorrente (US$M)',
+        data: [504, 950, 1300, 1688, 813],
+        backgroundColor: ['#3b4a5c', '#3b4a5c', '#3b4a5c', '#3b4a5c', '#4ade80'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.dividaComp = new Chart(document.getElementById('chartDividaComp'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Dívida Financeira', 'Brumadinho', 'Samarco'],
+      datasets: [{
+        data: [13.13, 1.96, 2.70],
+        backgroundColor: ['#3b82f6', '#f87171', '#fbbf24'],
+        borderColor: '#1a2027', borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  charts.aloc = new Chart(document.getElementById('chartAloc'), {
+    type: 'bar',
+    data: {
+      labels: ['Dividendos', 'Buyback', 'Capex'],
+      datasets: [{
+        label: 'Saídas de caixa 1T26 (US$M)',
+        data: [2745, 75, 1089],
+        backgroundColor: ['#4ade80', '#fbbf24', '#6366f1'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // ============ IRON ORE ============
+  charts.c1Bridge = new Chart(document.getElementById('chartC1Bridge'), {
+    type: 'bar',
+    data: {
+      labels: ['C1 1T25', '+BRL', '+Estoque', '+Outros', 'C1 1T26'],
+      datasets: [{
+        data: [[0, 21.0], [21.0, 22.5], [22.5, 23.3], [23.3, 23.6], [0, 23.6]],
+        backgroundColor: ['#6b7785', '#f87171', '#f87171', '#f87171', '#6366f1'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.allinBridge = new Chart(document.getElementById('chartAllinBridge'), {
+    type: 'bar',
+    data: {
+      labels: ['All-in 1T25', '+C1', '+Parada', '+Distrib.', '-Prêmios', 'All-in 1T26'],
+      datasets: [{
+        data: [[0, 51.3], [51.3, 53.9], [53.9, 55.0], [55.0, 56.4], [56.4, 55.0], [0, 55.4]],
+        backgroundColor: ['#6b7785', '#f87171', '#f87171', '#f87171', '#4ade80', '#6366f1'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.mixIron = new Chart(document.getElementById('chartMixIron'), {
+    type: 'bar',
+    data: {
+      labels: ['BRBF', 'PFC', 'Mid-Grade Carajás', 'IOCJ', 'Granulado'],
+      datasets: [{
+        label: 'Vendas 1T26 (Mt)',
+        data: [30.2, 9.1, 7.7, 3.8, 2.1],
+        backgroundColor: ['#6366f1', '#3b82f6', '#4ade80', '#10b981', '#fbbf24'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // ============ COBRE ============
+  charts.cuCost = new Chart(document.getElementById('chartCuCost'), {
+    type: 'bar',
+    data: {
+      labels: ['1T25', '2T25', '3T25', '4T25', '1T26'],
+      datasets: [{
+        label: 'All-in Cost Cobre (US$/t)',
+        data: [1212, 800, 100, -881, -642],
+        backgroundColor: function(ctx) {
+          return ctx.raw < 0 ? '#4ade80' : '#fbbf24';
+        },
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.cuProd = new Chart(document.getElementById('chartCuProd'), {
+    type: 'bar',
+    data: {
+      labels: ['Salobo', 'Sossego', 'Sudbury', 'Voisey\'s Bay'],
+      datasets: [
+        { label: '1T25', data: [52.3, 16.0, 15.8, 6.5], backgroundColor: '#3b4a5c', borderRadius: 4 },
+        { label: '1T26', data: [52.8, 29.0, 13.3, 5.4], backgroundColor: '#f59e0b', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.cuEbitda = new Chart(document.getElementById('chartCuEbitda'), {
+    type: 'bar',
+    data: {
+      labels: ['1T25', '4T25', '1T26'],
+      datasets: [{
+        label: 'EBITDA Cobre',
+        data: [546, 1059, 949],
+        backgroundColor: ['#3b4a5c', '#3b4a5c', '#f59e0b'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.cuPipe = new Chart(document.getElementById('chartCuPipe'), {
+    type: 'bar',
+    data: {
+      labels: ['Bacaba', 'Alemão', 'Salobo IV', 'Hu\'u', 'CCM', 'Cu JV'],
+      datasets: [{
+        label: 'Capex Pipeline (US$B)',
+        data: [0.29, 0.25, 0.8, 1.0, 1.7, 1.8],
+        backgroundColor: '#f59e0b',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // ============ NÍQUEL ============
+  charts.niCost = new Chart(document.getElementById('chartNiCost'), {
+    type: 'line',
+    data: {
+      labels: ['1T25', '2T25', '3T25', '4T25', '1T26'],
+      datasets: [{
+        label: 'All-in Cost Níquel (US$/t)',
+        data: [15730, 13500, 11000, 9001, 8184],
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.15)',
+        tension: 0.3, fill: true, pointRadius: 5, pointBackgroundColor: '#10b981'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.niProd = new Chart(document.getElementById('chartNiProd'), {
+    type: 'bar',
+    data: {
+      labels: ['Sudbury', 'Voisey\'s Bay', 'Onça Puma', 'External feed', 'Thompson'],
+      datasets: [
+        { label: '1T25', data: [11.0, 6.5, 5.4, 19.0, 3.5], backgroundColor: '#3b4a5c', borderRadius: 4 },
+        { label: '1T26', data: [10.6, 10.5, 8.9, 18.1, 1.2], backgroundColor: '#10b981', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.niEbitda = new Chart(document.getElementById('chartNiEbitda'), {
+    type: 'bar',
+    data: {
+      labels: ['1T25', '4T25', '1T26'],
+      datasets: [{
+        label: 'EBITDA Níquel',
+        data: [41, 358, 277],
+        backgroundColor: ['#3b4a5c', '#3b4a5c', '#10b981'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // ============ MÚLTIPLOS ============
+  charts.mult = new Chart(document.getElementById('chartMult'), {
+    type: 'bar',
+    data: {
+      labels: ['Vale', 'Fortescue', 'Rio Tinto', 'BHP', 'Antofagasta', 'Freeport', 'First Quantum', 'Southern Copper'],
+      datasets: [{
+        label: 'EV/EBITDA 2026E',
+        data: [4.95, 5.48, 6.76, 7.30, 9.29, 9.27, 11.16, 15.00],
+        backgroundColor: ['#4ade80', '#6366f1', '#6366f1', '#6366f1', '#f59e0b', '#f59e0b', '#f59e0b', '#f59e0b'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterLabel: ctx => {
+              if (ctx.dataIndex === 0) return 'Vale (alvo da análise)';
+              if (ctx.dataIndex <= 3) return 'Iron ore / Diversificada';
+              return 'Cobre pure-play';
+            }
+          }
+        }
+      },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  charts.mixComp = new Chart(document.getElementById('chartMixComp'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Iron Ore', 'Cobre', 'Níquel', 'Alumínio/Lítio'],
+      datasets: [
+        {
+          label: 'Vale',
+          data: [74, 20, 6, 0],
+          backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#6b7785'],
+          borderColor: '#1a2027', borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true, text: 'Vale: 74% Fe / 26% Cu+Ni', color: '#fff' }
+      }
+    }
+  });
+
+  charts.vbmTraj = new Chart(document.getElementById('chartVBMTraj'), {
+    type: 'line',
+    data: {
+      labels: ['2024', '2025', '2026E', '2028E', '2030E'],
+      datasets: [{
+        label: 'VBM como % EBITDA total',
+        data: [10, 22, 26, 30, 35],
+        borderColor: '#4ade80',
+        backgroundColor: 'rgba(74,222,128,0.15)',
+        tension: 0.3, fill: true, pointRadius: 5, pointBackgroundColor: '#4ade80'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: axisStyle, y: { ...axisStyle, suggestedMin: 0, suggestedMax: 40 } }
+    }
+  });
+
+  // ============ SELL SIDE ============
+  charts.pt = new Chart(document.getElementById('chartPT'), {
+    type: 'bar',
+    data: {
+      labels: ['JPMorgan', 'BTG Pactual', 'UBS'],
+      datasets: [
+        { label: 'Spot (US$16,9)', data: [16.9, 16.9, 16.9], backgroundColor: '#6b7785', borderRadius: 4 },
+        { label: 'Price Target', data: [18.5, 15.0, 16.0], backgroundColor: ['#4ade80', '#fbbf24', '#f87171'], borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: axisStyle, y: { ...axisStyle, suggestedMin: 12 } }
+    }
+  });
+
+  // ============ TESE ============
+  // ============ VALUATION (interactive) ============
+  charts.valuation = new Chart(document.getElementById('chartValuation'), {
+    type: 'bar',
+    data: {
+      labels: ['-10', '-5', 'Base', '+5', '+10', '+20'],
+      datasets: [
+        {
+          label: 'Preço Justo (US$)',
+          data: [13.36, 15.13, 16.90, 18.67, 20.44, 14.85],
+          backgroundColor: ['#f87171', '#fbbf24', '#4ade80', '#4ade80', '#4ade80', '#fbbf24'],
+          borderRadius: 4,
+          order: 2
+        },
+        {
+          label: 'Preço Atual',
+          data: [16.33, 16.33, 16.33, 16.33, 16.33, 16.33],
+          type: 'line',
+          borderColor: '#fff',
+          borderDash: [6, 4],
+          pointRadius: 0,
+          fill: false,
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  recalcValuation();
+
+  charts.cenarios = new Chart(document.getElementById('chartCenarios'), {
+    type: 'bar',
+    data: {
+      labels: ['Bear (0/3)', 'Base (1-2/3)', 'Bull (3/3)'],
+      datasets: [{
+        label: 'Range esperado da ação (US$)',
+        data: [
+          [14, 15.5],
+          [16, 18],
+          [19, 20]
+        ],
+        backgroundColor: ['#f87171', '#fbbf24', '#4ade80'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              return `US$${v[0]} - US$${v[1]}`;
+            }
+          }
+        }
+      },
+      scales: { x: axisStyle, y: { ...axisStyle, suggestedMin: 13, suggestedMax: 21 } }
+    }
+  });
+
+});
+</script>
+</body>
+</html>
