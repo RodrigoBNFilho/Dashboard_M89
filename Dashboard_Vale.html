@@ -421,6 +421,44 @@
   .val-table .pos-cell { color: var(--green); font-weight: 700; }
   .val-table .neg-cell { color: var(--red); font-weight: 700; }
 
+  /* Sensitivity matrix (heatmap) */
+  .sens-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sens-matrix th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 8px 10px;
+    text-align: center;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+  .sens-matrix th:first-child { text-align: left; min-width: 130px; }
+  .sens-matrix td {
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid var(--border);
+    color: #333;
+    font-weight: 600;
+  }
+  .sens-matrix td:first-child {
+    text-align: left;
+    background: var(--gray-light);
+    color: var(--navy);
+    font-weight: 700;
+  }
+  .sens-matrix td.up-strong { background: #c3ecd1; color: var(--green); }
+  .sens-matrix td.up-mild { background: var(--green-bg); color: #1e6b32; }
+  .sens-matrix td.flat { background: var(--white); color: #333; }
+  .sens-matrix td.down-mild { background: #fdecd5; color: #985a18; }
+  .sens-matrix td.down-strong { background: var(--red-bg); color: var(--red); }
+  .sens-matrix td.base-cell { outline: 2px solid var(--navy); outline-offset: -2px; }
+
   /* Report */
   .report {
     max-width: 920px;
@@ -835,7 +873,7 @@
       <div class="card">
         <h3>FCF Recorrente Trimestral (US$M)</h3>
         <div class="chart-container short"><canvas id="chartFCF"></canvas></div>
-        <div class="ctx" style="margin-top:8px">FCF sazonal — 1T tipicamente fraco por working capital. Conversão EBITDA→FCF caiu para 21%.</div>
+        <div class="ctx" style="margin-top:8px">FCF sazonal — 1T tipicamente fraco por working capital + antecipação de dividendos para evitar nova taxação.</div>
       </div>
 
       <div class="card">
@@ -1042,6 +1080,12 @@
       <div class="ctx" style="margin-top:8px">Vale negocia ~24% abaixo da média dos pares iron ore (6,51x). Pure-plays de cobre negociam com prêmio estrutural (~11,2x).</div>
     </div>
 
+    <div class="card" style="margin-top:16px;">
+      <h3>Histórico Ratio EV/EBITDA — Vale ÷ Rio Tinto (10 anos)</h3>
+      <div class="chart-container tall"><canvas id="chartRatioHist"></canvas></div>
+      <div class="ctx" style="margin-top:8px;">3 regimes claros: <strong style="color:var(--navy);">pré-Brumadinho (2016-2018)</strong> ratio em 0,85-1,05 (Vale em paridade/prêmio); <strong style="color:var(--navy);">pós-Brumadinho (2019-2020)</strong> colapso para 0,55-0,65; <strong style="color:var(--navy);">recuperação (2021-2024)</strong> volta para 0,75-0,95. Hoje em 0,72 — abaixo da média histórica (~0,80), mas bem acima do piso de crise.</div>
+    </div>
+
     <div class="grid grid-2">
       <div class="card">
         <h3>Mix de Receita: Vale vs Rio Tinto</h3>
@@ -1172,6 +1216,21 @@
           <h3>Preço Justo por Cenário</h3>
           <div class="chart-container tall"><canvas id="chartValuation"></canvas></div>
           <div class="ctx" style="margin-top:8px">Linha tracejada: preço atual da ação. Barras verdes/vermelhas indicam upside/downside.</div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>Sensibilidade: Preço IO × Múltiplo (Preço Justo US$/ação)</h3>
+          <div style="overflow-x:auto;">
+            <table class="sens-matrix" id="sensMatrix">
+              <thead>
+                <tr id="sensHeader">
+                  <th>Preço IO ↓ / Mult →</th>
+                </tr>
+              </thead>
+              <tbody id="sensBody"></tbody>
+            </table>
+          </div>
+          <div class="ctx" style="margin-top:8px">Cada célula mostra o preço justo por ação. <strong style="color:var(--navy);">Cor verde = upside &gt; 5%</strong>; laranja = downside até -5%; vermelho = downside maior. Célula com borda navy = cenário atual (premissa). Demais inputs (volume, custo, dívida, BM EBITDA) vêm do painel esquerdo.</div>
         </div>
       </div>
     </div>
@@ -1331,18 +1390,21 @@
       <div class="ratio-viz">
         <div class="ratio-box current">
           <div class="ratio-label">Ratio Atual EV/EBITDA (Vale / Rio)</div>
-          <div class="ratio-val">0,73x</div>
-          <div class="ratio-sub">4,95x ÷ 6,76x = 0,73</div>
+          <div class="ratio-val">0,72x</div>
+          <div class="ratio-sub">4,95x ÷ 6,85x = 0,72</div>
         </div>
         <div class="ratio-box target">
-          <div class="ratio-label">Faixa Histórica EV/EBITDA</div>
-          <div class="ratio-val">0,90-0,95x</div>
-          <div class="ratio-sub">Convergência implica múltiplo Vale ~6,1-6,4x</div>
+          <div class="ratio-label">Média Histórica (10 anos)</div>
+          <div class="ratio-val">~0,80x</div>
+          <div class="ratio-sub">Convergência implica múltiplo Vale ~5,5x</div>
         </div>
       </div>
 
       <p style="color:#333; font-size:13px; line-height:1.6; margin-top:8px;">
-        Convergência do ratio EV/EBITDA para a média histórica (0,90) implica múltiplo Vale de <strong style="color:#28a745;">~6,1x</strong> → upside de <strong style="color:#28a745;">+23%</strong>. Convergência para 0,95 implica <strong style="color:#28a745;">+30%</strong>. Sem precisar assumir nenhum re-rating estrutural — apenas o <strong>desconto voltar ao normal</strong>.
+        Histórico tem 3 regimes: <strong>2016-2018 (pré-Brumadinho)</strong> ratio em 0,85-1,05 — Vale em paridade ou prêmio sobre Rio. <strong>2019-2020 (pós-Brumadinho)</strong> colapsou para 0,55-0,65 — pior momento da série. <strong>2021-2024 (recuperação)</strong> voltou para 0,75-0,95.
+      </p>
+      <p style="color:#333; font-size:13px; line-height:1.6; margin-top:8px;">
+        Hoje em <strong>0,72x</strong> = abaixo da faixa de recuperação, mas <strong>bem acima do piso de crise</strong>. Convergência para média histórica (0,80) implica múltiplo Vale <strong style="color:#28a745;">~5,5x → upside +11%</strong>. Convergência para pico de ciclo (0,95) implica <strong style="color:#28a745;">+32%</strong>.
       </p>
 
       <div style="margin-top:18px; padding:14px 16px; background:rgba(40,167,69,0.08); border-radius:8px; border-left:3px solid #28a745;">
@@ -1487,7 +1549,6 @@
       <ul>
         <li>Capital de giro consumiu US$863M; estoques mais altos e aumento no contas a receber</li>
         <li>CAPEX de US$1,1B abaixo do esperado, só 19% do guidance anual</li>
-        <li>Conversão EBITDA → FCF caiu para 21% (vs 37% no 4T25)</li>
       </ul>
 
       <h3>Dívida Líquida Expandida: US$17,8B</h3>
@@ -1822,6 +1883,49 @@ function recalcValuation() {
     charts.valuation.data.datasets[1].data = Array(6).fill(i.price);
     charts.valuation.update();
   }
+
+  // Update sensitivity matrix (IO price × Multiple)
+  buildSensitivityMatrix(i);
+}
+
+function buildSensitivityMatrix(i) {
+  const ioPrices = [85, 90, 95, 100, 105, 110];
+  const multiples = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5];
+
+  // Header row
+  const header = document.getElementById('sensHeader');
+  if (!header) return;
+  header.innerHTML = '<th>Preço IO ↓ / Mult →</th>' +
+    multiples.map(m => `<th>${m.toFixed(1)}x</th>`).join('');
+
+  // Body
+  const body = document.getElementById('sensBody');
+  body.innerHTML = ioPrices.map(io => {
+    const ebitdaPerT = io * i.realization - i.costCIF;
+    const ioEbitda = i.volume * ebitdaPerT;
+    const totalEbitda = ioEbitda + i.bmEbitda;
+
+    const cells = multiples.map(mult => {
+      const ev = mult * totalEbitda;
+      const equity = Math.max(ev - i.netDebt, 0);
+      const perShare = equity / i.shares;
+      const upside = i.price > 0 ? perShare / i.price - 1 : 0;
+
+      let cls = 'flat';
+      if (upside >= 0.20) cls = 'up-strong';
+      else if (upside >= 0.05) cls = 'up-mild';
+      else if (upside <= -0.15) cls = 'down-strong';
+      else if (upside <= -0.05) cls = 'down-mild';
+
+      // Highlight base cell (current premises: io = ioBase, mult = multiple)
+      const isBase = Math.abs(io - i.ioBase) < 0.5 && Math.abs(mult - i.multiple) < 0.05;
+      if (isBase) cls += ' base-cell';
+
+      return `<td class="${cls}">${perShare.toFixed(2)}</td>`;
+    }).join('');
+
+    return `<tr><td>US$${io}/t</td>${cells}</tr>`;
+  }).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2229,6 +2333,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       },
       scales: { x: axisStyle, y: axisStyle }
+    }
+  });
+
+  // Histórico Ratio Vale/Rio EV/EBITDA (10 anos) — semi-annual approximation
+  charts.ratioHist = new Chart(document.getElementById('chartRatioHist'), {
+    type: 'line',
+    data: {
+      labels: ['2016', "'16H2", '2017', "'17H2", '2018', "'18H2", '2019', "'19H2", '2020', "'20H2", '2021', "'21H2", '2022', "'22H2", '2023', "'23H2", '2024', "'24H2", '2025', "'25H2", '2026'],
+      datasets: [
+        {
+          label: 'Vale ÷ Rio Tinto',
+          data: [0.95, 0.85, 0.85, 0.95, 1.05, 0.95, 0.55, 0.62, 0.65, 0.70, 0.78, 0.80, 0.82, 0.92, 0.92, 0.85, 0.80, 0.78, 0.80, 0.78, 0.72],
+          borderColor: '#1a2744',
+          backgroundColor: 'rgba(26,39,68,0.08)',
+          tension: 0.3,
+          fill: true,
+          pointRadius: 0,
+          borderWidth: 2.5,
+          order: 3
+        },
+        {
+          label: 'Média histórica (~0,80)',
+          data: Array(21).fill(0.80),
+          borderColor: '#e67e22',
+          borderDash: [6, 4],
+          pointRadius: 0,
+          fill: false,
+          borderWidth: 1.5,
+          order: 1
+        },
+        {
+          label: 'Atual (0,72)',
+          data: Array(21).fill(0.72),
+          borderColor: '#dc3545',
+          borderDash: [4, 3],
+          pointRadius: 0,
+          fill: false,
+          borderWidth: 1.5,
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toFixed(2) + 'x' } }
+      },
+      scales: {
+        x: { ticks: { color: '#6c757d', maxRotation: 0, autoSkip: true, maxTicksLimit: 11 }, grid: { color: '#eee' } },
+        y: { ticks: { color: '#6c757d', callback: v => v.toFixed(2) + 'x' }, grid: { color: '#eee' }, suggestedMin: 0.5, suggestedMax: 1.1 }
+      }
     }
   });
 
