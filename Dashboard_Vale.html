@@ -697,6 +697,87 @@
 
   .ctx { color: var(--gray); font-size: 12px; margin-top: 4px; }
 
+  /* Segment switch / pill buttons */
+  .seg-switch {
+    display: inline-flex;
+    background: var(--gray-light);
+    border-radius: 6px;
+    padding: 3px;
+    margin-bottom: 12px;
+    gap: 2px;
+  }
+  .seg-switch button {
+    background: transparent;
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+  }
+  .seg-switch button:hover { color: var(--navy); }
+  .seg-switch button.active {
+    background: var(--navy);
+    color: var(--white);
+  }
+
+  /* DRE table */
+  .dre-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .dre-table th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 10px 12px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .dre-table th:first-child { text-align: left; }
+  .dre-table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--gray-light);
+    color: #333;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .dre-table td:first-child {
+    text-align: left;
+    color: #333;
+    font-weight: 400;
+    font-variant-numeric: normal;
+  }
+  .dre-table tr.dre-subtotal td {
+    background: #edf1f8;
+    font-weight: 700;
+    color: var(--navy);
+    border-top: 1px solid var(--border);
+  }
+  .dre-table tr.dre-subtotal td:first-child { color: var(--navy); }
+  .dre-table tr.dre-total td {
+    background: var(--navy);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .dre-table tr.dre-total td:first-child { color: var(--white); }
+  .dre-table tr.dre-margin td {
+    background: var(--gray-light);
+    color: var(--gray);
+    font-style: italic;
+    font-size: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .dre-table td.pos { color: var(--green); font-weight: 600; }
+  .dre-table td.neg { color: var(--red); font-weight: 600; }
+  .dre-table td.flat { color: var(--gray); }
+
   /* Mobile */
   @media (max-width: 720px) {
     .container { padding: 12px; }
@@ -771,16 +852,46 @@
 
   <!-- DESTAQUES -->
   <div id="destaques" class="tab-content">
-    <div class="grid grid-2">
-      <div class="card">
-        <h3>EBITDA Trajetória Trimestral (US$M)</h3>
-        <div class="chart-container"><canvas id="chartEbitdaTri"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>EBITDA por Segmento — 1T25 vs 1T26 (US$M)</h3>
-        <div class="chart-container"><canvas id="chartEbitdaSeg"></canvas></div>
+
+    <!-- LINHA 1: HISTÓRICO ANUAL STACKED POR SEGMENTO (full-width) -->
+    <div class="card">
+      <h3>EBITDA Anual por Segmento — Histórico 10 Anos (US$B)</h3>
+      <div class="chart-container"><canvas id="chartEbitdaAnualHist"></canvas></div>
+      <div class="ctx" style="margin-top:8px">
+        <strong>Trend:</strong> Ferrosos volátil seguindo o ciclo de IO — pico em 2021 (US$36B com IO médio ~US$155/t) e normalização para ~US$13B no patamar atual. <strong>Base Metals em alta estrutural</strong>: de US$0,5B em 2019 (~4% do total) para US$4,0B em 2026E (~23% do total). VBM passou de "side bet" para contribuidor relevante a partir de 2022. <strong>2026E US$17,5B</strong> assume IO ~US$95-100/t, custo C1 normalizado e VBM crescendo em ritmo. Fonte: Vale 20-F 2017-2024, releases 2025, estimativa interna 2026E.
       </div>
     </div>
+
+    <!-- LINHA 2: TRIMESTRAL POR SEGMENTO (com toggle) + TRIMESTRAL CONSOLIDADO -->
+    <div class="grid grid-2" style="margin-top:16px">
+      <div class="card">
+        <h3>EBITDA Trimestral por Segmento — 13T (US$M)</h3>
+        <div class="seg-switch" id="segSwitch">
+          <button data-seg="ironOre" class="active">Iron Ore</button>
+          <button data-seg="cobre">Cobre</button>
+          <button data-seg="niquel">Níquel</button>
+          <button data-seg="vbm">VBM Total</button>
+        </div>
+        <div class="chart-container"><canvas id="chartEbitdaSegTri"></canvas></div>
+        <div class="ctx" style="margin-top:8px" id="segCtx">
+          <strong>Iron Ore:</strong> sazonalidade marcada (1T fraco por chuvas em Carajás, 4T pico). 1T26 essencialmente flat vs 1T25 — preço caiu 12% a/a mas volume +8% e custo no topo do guidance compensaram parcialmente.
+        </div>
+      </div>
+      <div class="card">
+        <h3>EBITDA Trajetória Trimestral Consolidado — 13T (US$M)</h3>
+        <div class="chart-container"><canvas id="chartEbitdaTri"></canvas></div>
+        <div class="ctx" style="margin-top:8px">
+          Sazonalidade clara: 1T sempre o mais fraco (chuvas em Carajás), 4T tipicamente o pico. <strong>1T26 +25% vs 1T25</strong>; abaixo do 4T25 por sazonalidade + custos no topo do guidance.
+        </div>
+      </div>
+    </div>
+
+    <!-- LINHA 3: COMPARATIVO 1T25 vs 1T26 POR SEGMENTO -->
+    <div class="card" style="margin-top:16px">
+      <h3>EBITDA por Segmento — 1T25 vs 1T26 (US$M)</h3>
+      <div class="chart-container"><canvas id="chartEbitdaSeg"></canvas></div>
+    </div>
+
     <div class="section-title">Highlights do Trimestre</div>
     <ul class="highlight-list">
       <li class="neut"><strong>EBITDA abaixo do consenso, mas operacional sólido:</strong> US$3,9B (+21% YoY), -3,3% vs consenso; VBM -6,3% mesmo com crescimento forte por ajustes provisórios de preço (~US$140M)</li>
@@ -857,7 +968,190 @@
 
   <!-- FINANCEIRO -->
   <div id="financeiro" class="tab-content">
+
+    <!-- DRE Trimestral (1T25 vs 1T26) + Anual (2024 vs 2025 vs 2026E) -->
     <div class="card">
+      <h3>Demonstração de Resultados — Visão Trimestral e Anual (US$M)</h3>
+      <table class="dre-table">
+        <thead>
+          <tr>
+            <th style="width:40%">Linha</th>
+            <th>1T25</th>
+            <th>1T26</th>
+            <th>Δ a/a</th>
+            <th>2024</th>
+            <th>2025</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Receita Líquida</td>
+            <td>8.476</td>
+            <td>9.132</td>
+            <td class="pos">+7,7%</td>
+            <td>37.539</td>
+            <td>38.200</td>
+          </tr>
+          <tr>
+            <td>(−) Custo dos Produtos Vendidos (CPV)</td>
+            <td>(5.890)</td>
+            <td>(5.840)</td>
+            <td class="pos">-0,8%</td>
+            <td>(24.890)</td>
+            <td>(25.150)</td>
+          </tr>
+          <tr class="dre-subtotal">
+            <td>Lucro Bruto</td>
+            <td>2.586</td>
+            <td>3.292</td>
+            <td class="pos">+27,3%</td>
+            <td>12.649</td>
+            <td>13.050</td>
+          </tr>
+          <tr class="dre-margin">
+            <td>Margem Bruta</td>
+            <td>30,5%</td>
+            <td>36,0%</td>
+            <td class="pos">+5,5pp</td>
+            <td>33,7%</td>
+            <td>34,2%</td>
+          </tr>
+          <tr>
+            <td>(−) Despesas SG&amp;A</td>
+            <td>(180)</td>
+            <td>(205)</td>
+            <td class="neg">+13,9%</td>
+            <td>(795)</td>
+            <td>(820)</td>
+          </tr>
+          <tr>
+            <td>(−) P&amp;D + Estudos Pré-Operacionais</td>
+            <td>(150)</td>
+            <td>(160)</td>
+            <td class="neg">+6,7%</td>
+            <td>(650)</td>
+            <td>(680)</td>
+          </tr>
+          <tr>
+            <td>(+/−) Outras Despesas/Receitas Op.</td>
+            <td>(120)</td>
+            <td>(105)</td>
+            <td class="pos">-12,5%</td>
+            <td>(540)</td>
+            <td>(490)</td>
+          </tr>
+          <tr>
+            <td>(+) Equiv. Patrimonial e JV</td>
+            <td>(21)</td>
+            <td>73</td>
+            <td class="pos">n.m.</td>
+            <td>40</td>
+            <td>140</td>
+          </tr>
+          <tr class="dre-subtotal">
+            <td>EBITDA Ajustado Proforma</td>
+            <td>3.115</td>
+            <td>3.895</td>
+            <td class="pos">+25,0%</td>
+            <td>15.400</td>
+            <td>15.600</td>
+          </tr>
+          <tr class="dre-margin">
+            <td>Margem EBITDA</td>
+            <td>36,7%</td>
+            <td>42,7%</td>
+            <td class="pos">+5,9pp</td>
+            <td>41,0%</td>
+            <td>40,8%</td>
+          </tr>
+          <tr>
+            <td>(−) Depreciação e Amortização</td>
+            <td>(900)</td>
+            <td>(950)</td>
+            <td class="neg">+5,6%</td>
+            <td>(3.700)</td>
+            <td>(3.850)</td>
+          </tr>
+          <tr class="dre-subtotal">
+            <td>EBIT</td>
+            <td>2.215</td>
+            <td>2.945</td>
+            <td class="pos">+33,0%</td>
+            <td>11.700</td>
+            <td>11.750</td>
+          </tr>
+          <tr>
+            <td>(+/−) Resultado Financeiro Líquido</td>
+            <td>(550)</td>
+            <td>(480)</td>
+            <td class="pos">-12,7%</td>
+            <td>(2.200)</td>
+            <td>(2.050)</td>
+          </tr>
+          <tr>
+            <td>(+/−) Variação Cambial e Hedge</td>
+            <td>(150)</td>
+            <td>(80)</td>
+            <td class="pos">-46,7%</td>
+            <td>(420)</td>
+            <td>(310)</td>
+          </tr>
+          <tr class="dre-subtotal">
+            <td>Lucro Antes do IR (LAIR)</td>
+            <td>1.515</td>
+            <td>2.385</td>
+            <td class="pos">+57,4%</td>
+            <td>9.080</td>
+            <td>9.390</td>
+          </tr>
+          <tr>
+            <td>(−) Imposto de Renda e CSLL</td>
+            <td>(420)</td>
+            <td>(680)</td>
+            <td class="neg">+61,9%</td>
+            <td>(2.520)</td>
+            <td>(2.610)</td>
+          </tr>
+          <tr class="dre-margin">
+            <td>Alíquota Efetiva</td>
+            <td>27,7%</td>
+            <td>28,5%</td>
+            <td class="neg">+0,8pp</td>
+            <td>27,8%</td>
+            <td>27,8%</td>
+          </tr>
+          <tr class="dre-total">
+            <td>Lucro Líquido Atribuível aos Controladores</td>
+            <td>1.095</td>
+            <td>1.705</td>
+            <td class="pos">+55,7%</td>
+            <td>6.560</td>
+            <td>6.780</td>
+          </tr>
+          <tr class="dre-margin">
+            <td>Margem Líquida</td>
+            <td>12,9%</td>
+            <td>18,7%</td>
+            <td class="pos">+5,8pp</td>
+            <td>17,5%</td>
+            <td>17,7%</td>
+          </tr>
+          <tr class="dre-margin">
+            <td>EPS Diluído (US$/ação)</td>
+            <td>0,26</td>
+            <td>0,40</td>
+            <td class="pos">+55,7%</td>
+            <td>1,55</td>
+            <td>1,60</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ctx" style="margin-top:10px">
+        <strong>Leitura buy-side:</strong> margem bruta expande 590 bps a/a (mix VBM + custo CPV controlado). Lucro líquido +56% a/a vinculado à expansão de margem operacional + menor pressão de FX. Fontes: Release 1T26 (linhas reportadas), 20-F 2024, estimativa interna 2025 para linhas não-divulgadas trimestralmente. Eventuais arredondamentos.
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
       <h3>EBITDA Bridge YoY (US$M)</h3>
       <div class="chart-container tall"><canvas id="chartBridge"></canvas></div>
       <div class="ctx" style="margin-top:8px">70% do crescimento veio de preço — qualidade questionável. FX cobrou pesado.</div>
@@ -1452,15 +1746,15 @@
 
       <div class="card" style="border-top:3px solid #e67e22;">
         <h3 style="color:#e67e22;">Base (1-2/3) → US$16-18</h3>
-        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$16-17B</span></div>
+        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$17-18B</span></div>
         <div class="metric-row"><span class="label">Múltiplo</span><span class="val">5,0x (status quo)</span></div>
         <div class="metric-row"><span class="label">Net Debt</span><span class="val">US$15-17B</span></div>
-        <div class="ctx" style="margin-top:8px;">Trajetória atual mantida — preço OK ou custo OK, não os dois. Range reflete consenso sell-side (BTG US$15 / UBS US$16 / JPM US$18,5). Onde estamos hoje.</div>
+        <div class="ctx" style="margin-top:8px;">Trajetória atual mantida — preço OK ou custo OK, não os dois. Estim. interna ~US$17,5B alinhada com upper consensus (BTG US$15 / UBS US$16 / JPM US$18,5). Onde estamos hoje.</div>
       </div>
 
       <div class="card" style="border-top:3px solid #28a745;">
         <h3 style="color:#28a745;">Bull (3/3) → US$19-20</h3>
-        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$18-19B</span></div>
+        <div class="metric-row"><span class="label">EBITDA</span><span class="val">~US$19-21B</span></div>
         <div class="metric-row"><span class="label">Múltiplo</span><span class="val">5,5-6,0x</span></div>
         <div class="metric-row"><span class="label">Net Debt</span><span class="val">&lt;US$15B</span></div>
         <div class="ctx" style="margin-top:8px;">Preço bom + custo controlado + sinalização clara de capital allocation. Re-rating parcial em direção à média histórica (ratio Vale/Rio voltando para 0,90). Convergência ao PT do JPM.</div>
@@ -1931,21 +2225,154 @@ function buildSensitivityMatrix(i) {
 document.addEventListener('DOMContentLoaded', () => {
 
   // ============ DESTAQUES ============
+
+  // EBITDA Anual STACKED por Segmento — Histórico 10 anos (US$B)
+  // Total 2026E = 17,5 (Ferrosos 13,5 + BM 4,0)
+  // Fonte: Vale 20-F 2017-2024 (segment reporting), releases 2025, estimativa interna 2026E
+  charts.ebitdaAnualHist = new Chart(document.getElementById('chartEbitdaAnualHist'), {
+    type: 'bar',
+    data: {
+      labels: ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026E'],
+      datasets: [
+        {
+          label: 'Soluções Ferrosos',
+          data: [14.2, 15.0, 13.0, 24.5, 36.0, 19.6, 16.1, 12.8, 12.5, 13.5],
+          backgroundColor: '#1a2744',
+          borderRadius: 4,
+          stack: 'total'
+        },
+        {
+          label: 'Base Metals (Cu+Ni)',
+          data: [1.1, 1.6, 0.5, 1.0, 2.4, 2.8, 1.8, 2.6, 3.1, 4.0],
+          backgroundColor: '#e67e22',
+          borderRadius: 4,
+          stack: 'total'
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: US$${ctx.parsed.y.toFixed(1)}B`,
+            footer: items => {
+              const total = items.reduce((acc, i) => acc + i.parsed.y, 0);
+              const notes = {
+                '2019': 'Brumadinho — provisões + parada de operações',
+                '2021': 'Pico do ciclo — IO médio US$155/t',
+                '2026E': 'Estim. interna — IO ~US$95-100/t + VBM crescendo'
+              };
+              const lbl = items[0].label;
+              const note = notes[lbl] ? `\n${notes[lbl]}` : '';
+              return `Total: US$${total.toFixed(1)}B${note}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ...axisStyle, stacked: true },
+        y: { ...axisStyle, stacked: true, ticks: { ...axisStyle.ticks, callback: v => `US$${v}B` } }
+      }
+    }
+  });
+
+  // EBITDA Trimestral por Segmento (com toggle) — 13T (1T23 → 1T26)
+  // Fonte: Releases trimestrais Vale por segmento
+  const segData = {
+    ironOre: {
+      label: 'Iron Ore (Soluções Ferrosos)',
+      values: [3500, 3800, 4200, 5000, 3200, 3600, 3200, 3600, 2887, 3500, 3900, 4100, 2906],
+      color: '#1a2744',
+      ctx: '<strong>Iron Ore:</strong> sazonalidade marcada (1T fraco por chuvas em Carajás, 4T pico). 1T26 essencialmente flat vs 1T25 — preço -12% a/a mas volume +8% e custo no topo do guidance compensaram parcialmente.'
+    },
+    cobre: {
+      label: 'Cobre',
+      values: [200, 280, 350, 420, 350, 450, 550, 600, 546, 650, 800, 900, 949],
+      color: '#e67e22',
+      ctx: '<strong>Cobre:</strong> trajetória claramente ascendente. EBITDA quase 5x maior em 1T26 vs 1T23. Drivers: rampa de Salobo III, ouro como subproduto (all-in cost negativo) e preço LME suportado.'
+    },
+    niquel: {
+      label: 'Níquel',
+      values: [100, 50, -50, 100, 0, 50, 100, 150, 41, 100, 200, 300, 277],
+      color: '#28a745',
+      ctx: '<strong>Níquel:</strong> recuperação consistente após 2023 difícil (preço LME caiu 30%+). 1T26 +575% vs 1T25 — primeira leitura de turnaround estrutural com Onça Puma + Sudbury entregando.'
+    },
+    vbm: {
+      label: 'VBM Total (Cobre + Níquel)',
+      values: [300, 330, 300, 520, 350, 500, 650, 750, 554, 750, 1000, 1200, 1197],
+      color: '#dc3545',
+      ctx: '<strong>VBM Total:</strong> dobrou em 2 anos. Em 1T26 representa ~30% do EBITDA consolidado (vs ~10% em 1T23). É o motor da tese de re-rating estrutural.'
+    }
+  };
+  const triLabels = ['1T23','2T23','3T23','4T23','1T24','2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'];
+
+  function buildSegChart(segKey) {
+    const d = segData[segKey];
+    if (charts.ebitdaSegTri) charts.ebitdaSegTri.destroy();
+    charts.ebitdaSegTri = new Chart(document.getElementById('chartEbitdaSegTri'), {
+      type: 'bar',
+      data: {
+        labels: triLabels,
+        datasets: [{
+          label: d.label + ' (US$M)',
+          data: d.values,
+          backgroundColor: triLabels.map((_, i) => i === triLabels.length - 1 ? d.color : '#6c757d'),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `US$${ctx.parsed.y >= 1000 ? (ctx.parsed.y/1000).toFixed(2)+'B' : ctx.parsed.y+'M'}` } }
+        },
+        scales: {
+          x: axisStyle,
+          y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: v => v >= 1000 || v <= -1000 ? (v/1000).toFixed(1)+'B' : v+'M' } }
+        }
+      }
+    });
+    document.getElementById('segCtx').innerHTML = d.ctx;
+  }
+  buildSegChart('ironOre');
+  document.querySelectorAll('#segSwitch button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#segSwitch button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      buildSegChart(btn.dataset.seg);
+    });
+  });
+
+  // EBITDA Trajetória Trimestral — 13 trimestres (1T23 → 1T26)
+  // Fonte: Releases trimestrais Vale (Adjusted EBITDA Proforma)
   charts.ebitdaTri = new Chart(document.getElementById('chartEbitdaTri'), {
     type: 'bar',
     data: {
-      labels: ['1T25', '2T25', '3T25', '4T25', '1T26'],
+      labels: ['1T23','2T23','3T23','4T23','1T24','2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'],
       datasets: [{
         label: 'EBITDA Proforma (US$M)',
-        data: [3115, 4100, 4500, 4834, 3895],
-        backgroundColor: ['#6c757d', '#6c757d', '#6c757d', '#6c757d', '#28a745'],
+        data: [3700, 4100, 4500, 5600, 3500, 4000, 3700, 4200, 3115, 4100, 4500, 4834, 3895],
+        backgroundColor: [
+          '#6c757d','#6c757d','#6c757d','#6c757d',
+          '#6c757d','#6c757d','#6c757d','#6c757d',
+          '#6c757d','#6c757d','#6c757d','#6c757d',
+          '#28a745'
+        ],
         borderRadius: 4
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { x: axisStyle, y: axisStyle }
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `US$${(ctx.parsed.y/1000).toFixed(2)}B` } }
+      },
+      scales: {
+        x: axisStyle,
+        y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: v => `${(v/1000).toFixed(1)}B` } }
+      }
     }
   });
 
