@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VULC3 — Vulcabras 1T26 · M89</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#1a2744; --navy-light:#243352; --blue:#2c7be5; --blue-light:#5da3f0;
+  --green:#28a745; --green-bg:#e6f9ed; --red:#dc3545; --red-bg:#fce8ea;
+  --orange:#e67e22; --orange-bg:#fdf2e7;
+  --gray:#6c757d; --gray-light:#f4f5f7; --border:#dee2e6; --white:#ffffff;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --text-dark:#1a2744; --text-mid:#343a40; --text-light:#6c757d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--gray-light);color:var(--text-mid);font-size:14px;line-height:1.5}
+h1{font-size:1.6rem;font-weight:700;color:var(--text-dark)}
+h2{font-size:1.2rem;font-weight:700;color:var(--text-dark);margin-bottom:10px}
+h3{font-size:1rem;font-weight:600;color:var(--text-dark);margin-bottom:8px}
+h4{font-size:.85rem;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+p{color:var(--text-mid);line-height:1.6;margin-bottom:8px}
+a{color:var(--blue);text-decoration:none}
+.text-green{color:var(--green);font-weight:600}
+.text-red{color:var(--red);font-weight:600}
+.text-orange{color:var(--orange);font-weight:600}
+.text-gray{color:var(--gray)}
+.text-small{font-size:.8rem}
+.text-right{text-align:right}
+.text-center{text-align:center}
+.fw-bold{font-weight:700}
+.hidden{display:none!important}
+
+.top-bar{position:sticky;top:0;z-index:1000;background:var(--navy);padding:6px 24px;font-size:.85rem;color:rgba(255,255,255,.85);display:flex;justify-content:space-between;align-items:center}
+.top-bar .brand{color:#fff;font-weight:700;letter-spacing:1px}
+
+.page-header{background:var(--navy);color:var(--white);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;border-bottom:3px solid var(--blue)}
+.header-left{display:flex;align-items:center;gap:18px}
+.ticker-badge{background:var(--blue);color:var(--white);font-size:1.1rem;font-weight:700;padding:10px 18px;border-radius:6px;letter-spacing:1.5px}
+.page-header h1{color:var(--white);font-size:1.5rem;margin-bottom:2px}
+.header-sub{color:rgba(255,255,255,.75);font-size:.85rem}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.header-date{font-size:.78rem;color:rgba(255,255,255,.6)}
+.recommendation{font-size:.9rem;font-weight:700;padding:6px 14px;border-radius:4px;letter-spacing:.8px}
+.rec-compra{background:var(--green);color:var(--white)}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:0;background:var(--white);border-bottom:1px solid var(--border)}
+.kpi-cell{padding:16px 20px;border-right:1px solid var(--border);text-align:center}
+.kpi-cell:last-child{border-right:none}
+.kpi-label{font-size:.7rem;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-weight:600}
+.kpi-value{font-size:1.3rem;font-weight:700;color:var(--text-dark);margin-bottom:2px;line-height:1.2}
+.kpi-change{font-size:.78rem;font-weight:600}
+
+.tab-bar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;overflow-x:auto;position:sticky;top:33px;z-index:50;box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.tab-btn{background:none;border:none;padding:14px 18px;font-family:var(--font);font-size:.85rem;color:var(--gray);font-weight:600;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s}
+.tab-btn:hover{color:var(--text-dark)}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--blue)}
+
+.tab-content{padding:24px 32px;max-width:1400px;margin:0 auto}
+.section{margin-bottom:24px}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:1rem;font-weight:700;color:var(--text-dark);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.card-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:var(--navy);color:var(--white);padding:8px 12px;text-align:left;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-mid)}
+tr:nth-child(even) td{background:var(--gray-light)}
+tr.total td{background:var(--navy);color:var(--white);font-weight:700}
+.tbl-num{text-align:right;font-variant-numeric:tabular-nums}
+
+ul.bullets{list-style:none;padding-left:0}
+ul.bullets li{position:relative;padding-left:18px;margin-bottom:8px;line-height:1.55}
+ul.bullets li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;background:var(--blue);border-radius:50%}
+ul.bullets li ul{margin-top:6px;padding-left:18px}
+ul.bullets li ul li{margin-bottom:4px;font-size:.9rem;color:var(--text-light)}
+ul.bullets li ul li::before{background:var(--gray);width:4px;height:4px;top:9px}
+
+.highlight{background:var(--navy);color:var(--white);padding:18px;border-radius:8px;margin-bottom:16px}
+.highlight h3{color:var(--white)}
+.highlight ul.bullets li::before{background:var(--blue-light)}
+.highlight ul.bullets li{color:rgba(255,255,255,.92)}
+
+.callout{padding:14px 16px;border-left:4px solid var(--blue);background:var(--gray-light);border-radius:0 6px 6px 0;margin-bottom:14px;font-size:.9rem}
+.callout-green{border-left-color:var(--green);background:var(--green-bg)}
+.callout-red{border-left-color:var(--red);background:var(--red-bg)}
+.callout-orange{border-left-color:var(--orange);background:var(--orange-bg)}
+
+.chart-box{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.chart-box h3{margin-bottom:14px}
+.chart-canvas{position:relative;height:280px}
+.chart-canvas-lg{height:340px}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;letter-spacing:.3px}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-orange{background:var(--orange-bg);color:var(--orange)}
+.badge-gray{background:var(--gray-light);color:var(--gray)}
+
+footer{padding:24px 32px;text-align:center;color:var(--gray);font-size:.78rem;border-top:1px solid var(--border);margin-top:32px;background:var(--white)}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="brand">M89 RESEARCH</span>
+  <span>Buy-Side Internal · Vulcabras 1T26</span>
+</div>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="ticker-badge">VULC3</div>
+    <div>
+      <h1>Vulcabras S.A.</h1>
+      <p class="header-sub">Calçados Esportivos · Brasil · Análise 1T26</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="header-date">Release: 05/05/2026 · Análise: 12/05/2026</span>
+    <span class="header-date">Preço (12/05/2026): <strong style="color:#fff;font-size:.95rem">R$ 15,30</strong></span>
+  </div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi-cell"><div class="kpi-label">Receita Líquida</div><div class="kpi-value">R$ 776,4M</div><div class="kpi-change text-green">+10,7% a/a</div></div>
+  <div class="kpi-cell"><div class="kpi-label">Volume</div><div class="kpi-value">7,6 mi</div><div class="kpi-change text-green">+6,8% a/a</div></div>
+  <div class="kpi-cell"><div class="kpi-label">Margem Bruta</div><div class="kpi-value">40,4%</div><div class="kpi-change text-green">+0,2 p.p.</div></div>
+  <div class="kpi-cell"><div class="kpi-label">EBITDA Rec.</div><div class="kpi-value">R$ 156,9M</div><div class="kpi-change text-green">+11,8% a/a</div></div>
+  <div class="kpi-cell"><div class="kpi-label">Margem EBITDA</div><div class="kpi-value">20,2%</div><div class="kpi-change text-green">+0,2 p.p.</div></div>
+  <div class="kpi-cell"><div class="kpi-label">LL Recorrente</div><div class="kpi-value">R$ 86,1M</div><div class="kpi-change text-red">-18,9% a/a</div></div>
+  <div class="kpi-cell"><div class="kpi-label">Dív Líq/EBITDA</div><div class="kpi-value">0,7x</div><div class="kpi-change text-green">−0,2x t/t</div></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab(event,'destaques')">Destaques</button>
+  <button class="tab-btn" onclick="showTab(event,'macro')">Macro</button>
+  <button class="tab-btn" onclick="showTab(event,'receita')">Receita</button>
+  <button class="tab-btn" onclick="showTab(event,'categorias')">Categorias</button>
+  <button class="tab-btn" onclick="showTab(event,'ecommerce')">E-commerce</button>
+  <button class="tab-btn" onclick="showTab(event,'margem')">Margem &amp; Despesas</button>
+  <button class="tab-btn" onclick="showTab(event,'lucro')">EBITDA &amp; LL</button>
+  <button class="tab-btn" onclick="showTab(event,'capital')">Capital &amp; Dívida</button>
+  <button class="tab-btn" onclick="showTab(event,'roic')">ROIC &amp; Caixa</button>
+  <button class="tab-btn" onclick="showTab(event,'tracking')">Sinalizações 4T25</button>
+  <button class="tab-btn" onclick="showTab(event,'peers')">Peers</button>
+  <button class="tab-btn" onclick="showTab(event,'sellside')">Sell-Side</button>
+  <button class="tab-btn" onclick="showTab(event,'valuation')">Valuation</button>
+  <button class="tab-btn" onclick="showTab(event,'tese')">Tese</button>
+</div>
+
+<!-- DESTAQUES -->
+<div class="tab-content" id="tab-destaques">
+  <div class="highlight">
+    <h3>Destaques do Trimestre</h3>
+    <ul class="bullets" style="margin-top:10px">
+      <li><strong>Resultado em linha com o esperado</strong> — receita, EBITDA e LL praticamente cravados nas estimativas do BTG (-0,1% / +1,0% / -0,8% vs estimado)</li>
+      <li><strong>Crescimento saudável do top-line puxado pelo volume</strong> — ROL +10,7% a/a, com volume +6,8% e preço médio +3,6%</li>
+      <li><strong>E-commerce mais fraco em meio ao ambiente promocional intensificado</strong> — +5,1% a/a, participação na ROL caiu de 16,9% para 16,0%; empresa optou por não participar de liquidações agressivas</li>
+      <li><strong>Dependência estrutural da linha Corre</strong> — canal digital e preço médio de Calçados Esportivos sofreram em trimestre sem lançamentos; toda nova linha entra a partir de abril</li>
+      <li><strong>Margem bruta ainda não mostrou melhora substancial</strong> — +0,2 p.p. a/a (40,4%); expectativa da empresa é recuperação mais forte a partir do 2S26</li>
+      <li><strong>Foco do ano na redução da alavancagem</strong> — Dív Líq/EBITDA saiu de 0,9x para 0,7x; agenda de dividendos mais fraca em 2026</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tabela-Resumo · 1T26 vs 1T25 vs 4T25</div>
+    <table>
+      <thead>
+        <tr><th>R$ Milhões</th><th class="tbl-num">1T26</th><th class="tbl-num">1T25</th><th class="tbl-num">Var. a/a</th><th class="tbl-num">4T25</th><th class="tbl-num">Var. t/t</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Receita Operacional Bruta</td><td class="tbl-num">923,1</td><td class="tbl-num">826,3</td><td class="tbl-num text-green">+11,7%</td><td class="tbl-num">—</td><td class="tbl-num">—</td></tr>
+        <tr><td>Receita Líquida</td><td class="tbl-num">776,4</td><td class="tbl-num">701,2</td><td class="tbl-num text-green">+10,7%</td><td class="tbl-num">1.009,3</td><td class="tbl-num text-red">−23,1%</td></tr>
+        <tr><td>Volume (mi pares/peças)</td><td class="tbl-num">7,576</td><td class="tbl-num">7,092</td><td class="tbl-num text-green">+6,8%</td><td class="tbl-num">9,167</td><td class="tbl-num text-red">−17,4%</td></tr>
+        <tr><td>Lucro Bruto</td><td class="tbl-num">313,5</td><td class="tbl-num">281,9</td><td class="tbl-num text-green">+11,2%</td><td class="tbl-num">418,0</td><td class="tbl-num text-red">−25,0%</td></tr>
+        <tr><td>Margem Bruta</td><td class="tbl-num">40,4%</td><td class="tbl-num">40,2%</td><td class="tbl-num text-green">+0,2 p.p.</td><td class="tbl-num">41,4%</td><td class="tbl-num text-red">−1,0 p.p.</td></tr>
+        <tr><td>EBITDA Recorrente</td><td class="tbl-num">156,9</td><td class="tbl-num">140,4</td><td class="tbl-num text-green">+11,8%</td><td class="tbl-num">220,7</td><td class="tbl-num text-red">−28,9%</td></tr>
+        <tr><td>Margem EBITDA Rec.</td><td class="tbl-num">20,2%</td><td class="tbl-num">20,0%</td><td class="tbl-num text-green">+0,2 p.p.</td><td class="tbl-num">21,9%</td><td class="tbl-num text-red">−1,7 p.p.</td></tr>
+        <tr><td>LL Recorrente</td><td class="tbl-num">86,1</td><td class="tbl-num">106,1</td><td class="tbl-num text-red">−18,9%</td><td class="tbl-num">158,8</td><td class="tbl-num text-red">−45,8%</td></tr>
+        <tr><td>Margem Líquida Rec.</td><td class="tbl-num">11,1%</td><td class="tbl-num">15,1%</td><td class="tbl-num text-red">−4,0 p.p.</td><td class="tbl-num">15,7%</td><td class="tbl-num text-red">−4,6 p.p.</td></tr>
+        <tr><td>Dívida Líquida</td><td class="tbl-num">658,9</td><td class="tbl-num">10,1</td><td class="tbl-num text-red">+R$ 648,8M</td><td class="tbl-num">769,4</td><td class="tbl-num text-green">−14,4%</td></tr>
+        <tr><td>Dív Líq / EBITDA LTM</td><td class="tbl-num">0,7x</td><td class="tbl-num">0,0x</td><td class="tbl-num text-red">+0,7x</td><td class="tbl-num">0,9x</td><td class="tbl-num text-green">−0,2x</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MACRO -->
+<div class="tab-content hidden" id="tab-macro">
+  <h2>Contexto Macro &amp; Setorial</h2>
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Ambiente Setorial</div>
+      <ul class="bullets">
+        <li><strong>Varejo promocional prolongado</strong> — liquidações de início de ano se estenderam até a 1ª quinzena de fevereiro, especialmente em marketplaces</li>
+        <li><strong>Guerra do Oriente Médio</strong> — derivados de petróleo em alta, encarecendo insumos dolarizados e frete</li>
+        <li><strong>Escala 6x1</strong> em discussão legislativa — empresa monitora e já tem adaptações preventivas</li>
+        <li><strong>Reoneração da folha (2ª etapa)</strong> + reajuste do salário mínimo com ganho real expressivo</li>
+        <li><strong>Selic ainda alta</strong> elevando custo de carrego da dívida corporativa</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Mercado de Corrida</div>
+      <ul class="bullets">
+        <li>Mercado de corrida crescendo mais que a média do mercado de calçados</li>
+        <li>Estudo Olympikus "Por Dentro do Corre" (2ª edição): aproximadamente <strong>2 milhões de novos corredores em 2025</strong></li>
+        <li>Demografia em expansão: mulheres, jovens e classe C</li>
+        <li>TAM em expansão estrutural sustenta tese de crescimento de volume da Vulcabras nos próximos ciclos</li>
+        <li>Mizuno Running Station atingiu marco de 100 mil pessoas impactadas no trimestre</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <h3>Ticket Médio Vulcabras × IPCA Calçados (base 100 = 1T22)</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartIPCA"></canvas></div>
+    <p class="text-small text-gray" style="margin-top:10px"><strong>Leitura:</strong> IPCA Calçados é índice de preço ao <strong>consumidor final no varejo</strong>, não de insumos — funciona como proxy do repasse setorial. Em base 100 = 1T22, o preço médio cobrado pela Vulcabras (ROL/volume, preço ao distribuidor) acumulou alta de ~45% em 4 anos vs ~33% do IPCA Calçados — <strong>spread estrutural de ~12 p.p.</strong> A empresa vem repassando preços em ritmo acima da inflação setorial, sinalizando pricing power relativo dentro da cadeia. Aceleração visível a partir do 2T25 com mix premium. Queda no 1T26 não é perda de pricing power — é mix temporariamente prejudicado (ver detalhe abaixo).</p>
+  </div>
+
+  <div class="callout callout-orange">
+    <strong>1T26 — por que ticket médio (+3,6%) cresceu abaixo do IPCA Calçados (+5,2%) mesmo com a empresa NÃO participando das promoções:</strong>
+    <ul class="bullets" style="margin-top:8px">
+      <li><strong>Mix dentro de Calçados Esportivos:</strong> sem lançamentos da família Corre, o mix da categoria pendeu para modelos mainstream (R$ 300-500) em vez de premium/performance — Calçados Esportivos cresceu só +0,7% no preço médio, e é 84,1% da ROL</li>
+      <li><strong>Mercado externo:</strong> vendeu a preço menor e contaminou o ticket de Calçados Esportivos</li>
+      <li><strong>Mix de categorias:</strong> Vestuário e Acessórios teve preço médio −3,0% a/a, puxando o consolidado</li>
+      <li><strong>Disciplina comercial preserva margem, não puxa preço:</strong> "não participar de promoção" significa não dar desconto adicional, não significa subir preço de tabela acima da inflação</li>
+    </ul>
+    <p style="margin-top:10px"><strong>Validação:</strong> margem bruta subiu +0,2 p.p. mesmo com ticket fraco — a empresa trocou crescimento de ticket por preservação de margem unitária. Não é deterioração de pricing power, é mix. Normalização esperada no 2T26 com entrada dos lançamentos do Corre + repasse de preço já feito para o 2S26.</p>
+  </div>
+</div>
+
+<!-- RECEITA -->
+<div class="tab-content hidden" id="tab-receita">
+  <h2>Receita</h2>
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Top-Line</div>
+      <ul class="bullets">
+        <li>Receita Líquida de <strong>R$ 776,4M no 1T26</strong> (+10,7% a/a)</li>
+        <li>Mercado interno: R$ 755,6M (+12,6% a/a, 97,3% da ROL)</li>
+        <li>Mercado externo: R$ 20,8M (−30,4% a/a, 2,7% da ROL)</li>
+        <li>23º trimestre consecutivo de crescimento de receita</li>
+        <li>Crescimento totalmente orgânico — sem FX, sem M&amp;A</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Volume × Preço</div>
+      <ul class="bullets">
+        <li>Volume bruto de <strong>7,576 mi pares/peças</strong> (+6,8% a/a)</li>
+        <li>Preço médio realizado de <strong>R$ 102,5/par</strong> (+3,6% a/a) — abaixo do IPCA Calçados (+5,2% em 12m)</li>
+        <li>Diferente do 4T25 (volume flat, ticket subindo), o 1T26 voltou a crescer em ambos os vetores</li>
+        <li>Decomposição: ~64% do crescimento veio de volume, ~36% de preço/mix</li>
+        <li><strong>Ticket abaixo da inflação setorial reflete mix prejudicado, não perda de pricing power:</strong> (i) sem lançamentos premium da família Corre, mix de Calçados Esportivos pendeu para modelos mainstream; (ii) mercado externo vendendo a preço menor; (iii) Vestuário com preço médio −3,0%; (iv) disciplina comercial preserva margem unitária mas não puxa preço de tabela</li>
+        <li>Margem bruta subiu +0,2 p.p. — empresa trocou crescimento de ticket por preservação de margem</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <h3>Receita Líquida 17T (R$ M)</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartReceita"></canvas></div>
+  </div>
+
+  <div class="chart-box">
+    <h3>Volume × Ticket Médio 17T</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartVolPrice"></canvas></div>
+  </div>
+</div>
+
+<!-- CATEGORIAS -->
+<div class="tab-content hidden" id="tab-categorias">
+  <h2>Categorias</h2>
+
+  <div class="card">
+    <div class="card-title">Volume por Categoria — 1T26 vs 1T25 (mil pares/peças)</div>
+    <table>
+      <thead>
+        <tr><th>Categoria</th><th class="tbl-num">Vol 1T26</th><th class="tbl-num">Part. 1T26</th><th class="tbl-num">Vol 1T25</th><th class="tbl-num">Part. 1T25</th><th class="tbl-num">Var. a/a</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Calçados Esportivos</td><td class="tbl-num">4.843</td><td class="tbl-num">63,9%</td><td class="tbl-num">4.381</td><td class="tbl-num">61,8%</td><td class="tbl-num text-green">+10,5%</td></tr>
+        <tr><td>Outros Calçados</td><td class="tbl-num">1.033</td><td class="tbl-num">13,6%</td><td class="tbl-num">1.110</td><td class="tbl-num">15,6%</td><td class="tbl-num text-red">−6,9%</td></tr>
+        <tr><td>Vestuário e Acessórios</td><td class="tbl-num">1.700</td><td class="tbl-num">22,5%</td><td class="tbl-num">1.601</td><td class="tbl-num">22,6%</td><td class="tbl-num text-green">+6,2%</td></tr>
+        <tr class="total"><td>Total</td><td class="tbl-num">7.576</td><td class="tbl-num">100,0%</td><td class="tbl-num">7.092</td><td class="tbl-num">100,0%</td><td class="tbl-num">+6,8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Receita por Categoria — 1T26 vs 1T25 (R$ M)</div>
+    <table>
+      <thead>
+        <tr><th>Categoria</th><th class="tbl-num">ROL 1T26</th><th class="tbl-num">Part. 1T26</th><th class="tbl-num">ROL 1T25</th><th class="tbl-num">Var. a/a</th><th class="tbl-num">Δ Preço médio</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Calçados Esportivos</td><td class="tbl-num">653,2</td><td class="tbl-num">84,1%</td><td class="tbl-num">586,9</td><td class="tbl-num text-green">+11,3%</td><td class="tbl-num text-green">+0,7%</td></tr>
+        <tr><td>Outros Calçados</td><td class="tbl-num">57,3</td><td class="tbl-num">7,4%</td><td class="tbl-num">50,2</td><td class="tbl-num text-green">+14,1%</td><td class="tbl-num text-green">+22,6%</td></tr>
+        <tr><td>Vestuário e Acessórios</td><td class="tbl-num">65,9</td><td class="tbl-num">8,5%</td><td class="tbl-num">64,1</td><td class="tbl-num text-green">+2,8%</td><td class="tbl-num text-red">−3,0%</td></tr>
+        <tr class="total"><td>Total</td><td class="tbl-num">776,4</td><td class="tbl-num">100,0%</td><td class="tbl-num">701,2</td><td class="tbl-num">+10,7%</td><td class="tbl-num">+3,6%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid-3">
+    <div class="card">
+      <div class="card-title">Calçados Esportivos</div>
+      <ul class="bullets">
+        <li>+11,3% a/a · 84,1% da ROL</li>
+        <li>Volume +10,5% · preço médio +0,7%</li>
+        <li>Aumento de capacidade produtiva implementado em 2025 destravou volume</li>
+        <li>Olympikus mantém liderança em corrida; UA com maior crescimento relativo; Mizuno em expansão consistente</li>
+        <li>Ausência de lançamentos da família Corre prejudicou mix</li>
+        <li>Mercado externo teve queda forte no preço médio, contaminando o ticket consolidado</li>
+        <li>Linha Corre nova vendendo bem desde abril; cores novas entrando aos poucos até dezembro</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Outros Calçados</div>
+      <ul class="bullets">
+        <li>+14,1% a/a em receita</li>
+        <li>Volume −6,9% · preço médio +22,6%</li>
+        <li>Queda de volume puxada por botas de uso profissional — distribuidores entraram com estoques elevados</li>
+        <li>Chinelos esportivos compensaram parcialmente, ganhando relevância no mix</li>
+        <li>Normalização gradual do canal ao longo do trimestre</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Vestuário e Acessórios</div>
+      <ul class="bullets">
+        <li>+2,8% a/a em receita</li>
+        <li>Volume +6,2% · preço médio −3,0%</li>
+        <li>Crescimento puxado pela Under Armour e continuidade da expansão da Olympikus</li>
+        <li>Limitação estrutural: sapatarias não comercializam roupas, restringindo cross-sell</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ECOMMERCE -->
+<div class="tab-content hidden" id="tab-ecommerce">
+  <h2>E-commerce</h2>
+  <div class="card">
+    <div class="card-title">Leitura do Canal Digital</div>
+    <ul class="bullets">
+      <li>ROL de <strong>R$ 124,4M no 1T26</strong> (+5,1% a/a) · participação na ROL caiu de 16,9% para 16,0%</li>
+      <li>Empresa optou pela estratégia de não participar de promoção agressiva em marketplaces — <strong>preferem rentabilidade a crescimento</strong></li>
+      <li>Canal digital depende muito de lançamentos, e o trimestre transitou sem nenhuma novidade da família Corre</li>
+      <li><strong>Marketplace × Venda Direta:</strong> em mercados promocionais a empresa reduz marketplace porque o consumidor olha muito o preço; em mercados estáveis o marketplace é estratégico pelo fluxo apesar das comissões pesadas; venda direta é uma venda mais qualificada, com consumidor que já quer a marca</li>
+      <li>Margem EBITDA do canal seguiu em trajetória de evolução positiva</li>
+      <li>Management indicou no call que o crescimento deve voltar a ser mais forte no restante do ano</li>
+    </ul>
+  </div>
+
+  <div class="chart-box">
+    <h3>E-commerce — Receita Líquida e Participação na ROL (17T)</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartEcomm"></canvas></div>
+    <p class="text-small text-gray" style="margin-top:10px"><strong>Leitura:</strong> canal cresceu estruturalmente de R$ 23M (4,8% da ROL) no 1T22 para R$ 124,4M (16,0%) no 1T26. A queda na participação t/t reflete arrefecimento sobre base alta + ausência de lançamentos do Corre, não deterioração estrutural.</p>
+  </div>
+</div>
+
+<!-- MARGEM -->
+<div class="tab-content hidden" id="tab-margem">
+  <h2>Margem Bruta &amp; Despesas</h2>
+
+  <div class="chart-box">
+    <h3>Lucro Bruto e Margem Bruta 17T</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartLB"></canvas></div>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Drivers de Pressão</div>
+      <ul class="bullets">
+        <li>Reoneração da folha (2ª etapa) + reajuste do salário mínimo com ganho real</li>
+        <li>Matérias-primas e embalagens em alta na cadeia</li>
+        <li>Derivados de petróleo encarecendo insumos dolarizados (~15% das compras fora do Brasil)</li>
+        <li>Frete começou a pressionar no último mês do trimestre</li>
+        <li>Absenteísmo estruturalmente maior — empresa vem controlando</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Drivers de Proteção</div>
+      <ul class="bullets">
+        <li>Plantas retomaram operação plena após férias coletivas</li>
+        <li>Curva de aprendizado da força de trabalho contratada em 2025 segue promovendo ganhos de eficiência</li>
+        <li>Crescimento do preço médio (+3,6%) compensou parcialmente pressão de custo</li>
+        <li><strong>Reajuste de preços para o 2S26</strong> para compensar pressão de matérias-primas</li>
+        <li>Empresa está priorizando estratégias de curto prazo neste momento</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Despesas — Breakdown 1T26</div>
+    <table>
+      <thead>
+        <tr><th>Linha</th><th class="tbl-num">R$ M 1T26</th><th class="tbl-num">R$ M 1T25</th><th class="tbl-num">Var. a/a</th><th class="tbl-num">% ROL 1T26</th><th class="tbl-num">% ROL 1T25</th><th class="tbl-num">Δ p.p.</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Propaganda e Marketing</td><td class="tbl-num">45,3</td><td class="tbl-num">35,5</td><td class="tbl-num text-red">+27,6%</td><td class="tbl-num">5,8%</td><td class="tbl-num">5,1%</td><td class="tbl-num text-red">+0,7</td></tr>
+        <tr><td>Vendas + PECLD (ex-prop.)</td><td class="tbl-num">106,6</td><td class="tbl-num">98,6</td><td class="tbl-num text-red">+8,1%</td><td class="tbl-num">13,7%</td><td class="tbl-num">14,1%</td><td class="tbl-num text-green">−0,4</td></tr>
+        <tr><td>G&amp;A</td><td class="tbl-num">44,2</td><td class="tbl-num">43,9</td><td class="tbl-num text-red">+0,7%</td><td class="tbl-num">5,7%</td><td class="tbl-num">6,3%</td><td class="tbl-num text-green">−0,6</td></tr>
+        <tr class="total"><td>SG&amp;A Total</td><td class="tbl-num">196,1</td><td class="tbl-num">178,0</td><td class="tbl-num">+10,2%</td><td class="tbl-num">25,2%</td><td class="tbl-num">25,4%</td><td class="tbl-num">−0,2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Leitura:</strong> alavancagem operacional do trimestre vem majoritariamente de G&amp;A (-0,6 p.p.) e Vendas (-0,4 p.p.), compensando o salto de propaganda (+0,7 p.p.) ligado às comemorações dos 50 anos da Olympikus. A empresa havia indicado no 4T25 estabilidade ou leve queda em propaganda — primeiro trimestre veio acima, mas com normalização esperada para o 2S26.
+  </div>
+</div>
+
+<!-- EBITDA & LL -->
+<div class="tab-content hidden" id="tab-lucro">
+  <h2>EBITDA e Lucro Líquido</h2>
+
+  <div class="chart-box">
+    <h3>EBITDA Recorrente e Margem 8T</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartEBITDA"></canvas></div>
+    <p class="text-small text-gray" style="margin-top:10px"><strong>Leitura:</strong> EBITDA recorrente cresceu +11,8% a/a, com margem em ligeira expansão (+0,2 p.p.) mesmo em ambiente operacional adverso. 1T é sazonalmente o trimestre de menor margem — patamar de 20,2% está em linha com a estrutura operacional normalizada da empresa.</p>
+  </div>
+
+  <div class="chart-box">
+    <h3>Lucro Líquido Recorrente e Margem Líquida 17T</h3>
+    <div class="chart-canvas chart-canvas-lg"><canvas id="chartLL"></canvas></div>
+  </div>
+
+  <div class="callout callout-red">
+    <strong>Por que o LL caiu −18,9% a/a:</strong> integralmente explicado por linhas não-operacionais.
+    <ul class="bullets" style="margin-top:8px">
+      <li>Resultado financeiro líquido: −R$ 27,8M (vs +R$ 2,3M no 1T25) — variação negativa de R$ 30,1M</li>
+      <li>Despesas financeiras +86,3% a/a (R$ 50,1M vs R$ 26,9M) por elevação do passivo financeiro pós-dividendo extraordinário 2025</li>
+      <li>Imposto de renda +54,1% a/a (R$ 9,3M vs R$ 6,1M)</li>
+      <li><strong>EBIT cresceu +6,8% a/a (R$ 117,3M vs R$ 109,8M) — operacional saudável</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- CAPITAL -->
+<div class="tab-content hidden" id="tab-capital">
+  <h2>Capital de Giro &amp; Endividamento</h2>
+
+  <div class="chart-box">
+    <h3>Dívida Líquida e Alavancagem 5T</h3>
+    <div class="chart-canvas"><canvas id="chartDivida"></canvas></div>
+  </div>
+
+  <div class="chart-box">
+    <h3>Capital de Giro e Ciclo Financeiro 5T</h3>
+    <div class="chart-canvas"><canvas id="chartWK"></canvas></div>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Capital de Giro</div>
+      <ul class="bullets">
+        <li>Capital de Giro de <strong>R$ 1.742,3M</strong> (-0,3% t/t)</li>
+        <li>Ciclo Financeiro de <strong>149 dias</strong> (vs 153 no 4T25, -4 dias t/t)</li>
+        <li>Dias de estoque com aumento relevante de ~10 dias a/a</li>
+        <li>Cobertura de estoque bastante adequada para a projeção de crescimento</li>
+        <li>Estoque elevado no fechamento foi escolha: seguraram para suportar os lançamentos do Corre em abril</li>
+        <li>Pós-fechamento do trimestre, estoque já normalizou</li>
+        <li>Dias de fornecedores é estruturalmente mais baixo para obter preço competitivo na compra</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Endividamento</div>
+      <ul class="bullets">
+        <li>Dívida Líquida de <strong>R$ 658,9M</strong> (-14,4% t/t)</li>
+        <li>Dívida Líquida/EBITDA: <strong>0,7x</strong> (vs 0,9x no 4T25)</li>
+        <li>Custo da dívida atual: <strong>CDI + 0,5%</strong> — spread baixíssimo, carrego pesa pela Selic e não pelo spread</li>
+        <li>Empresa foi praticamente caixa líquida nos últimos 3 anos antes da distribuição extraordinária de 2025</li>
+        <li>Estratégia explicitada: desalavancar antes de retomar dividendos</li>
+        <li>Saída de 0,9x para 0,7x foi vista pelo management como um bom primeiro passo</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ROIC -->
+<div class="tab-content hidden" id="tab-roic">
+  <h2>ROIC &amp; Geração de Caixa</h2>
+
+  <div class="chart-box">
+    <h3>ROIC Anualizado (2023–1T26 LTM)</h3>
+    <div class="chart-canvas"><canvas id="chartROIC"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ROIC — Trajetória</div>
+    <table>
+      <thead>
+        <tr><th>R$ Milhões</th><th class="tbl-num">2023</th><th class="tbl-num">2024</th><th class="tbl-num">2025</th><th class="tbl-num">1T26 LTM</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>LL do Período (LTM)</td><td class="tbl-num">494,9</td><td class="tbl-num">569,9</td><td class="tbl-num">1.165,3</td><td class="tbl-num">1.139,4</td></tr>
+        <tr><td>(+) Resultado Financeiro</td><td class="tbl-num">4,8</td><td class="tbl-num">(22,6)</td><td class="tbl-num">(101,1)</td><td class="tbl-num">(70,9)</td></tr>
+        <tr><td><strong>NOPAT</strong></td><td class="tbl-num"><strong>499,7</strong></td><td class="tbl-num"><strong>547,3</strong></td><td class="tbl-num"><strong>1.064,2</strong></td><td class="tbl-num"><strong>1.068,5</strong></td></tr>
+        <tr><td>Capital Investido Médio</td><td class="tbl-num">1.999,9</td><td class="tbl-num">2.095,8</td><td class="tbl-num">2.664,9</td><td class="tbl-num">3.181,0</td></tr>
+        <tr class="total"><td>ROIC anualizado</td><td class="tbl-num">25,0%</td><td class="tbl-num">26,1%</td><td class="tbl-num">39,9%</td><td class="tbl-num">33,6%</td></tr>
+        <tr class="total"><td>ROIC ajustado anualizado</td><td class="tbl-num">28,4%</td><td class="tbl-num">29,5%</td><td class="tbl-num">44,2%</td><td class="tbl-num">36,6%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-green">
+    <strong>Leitura analítica:</strong> ROIC roda 2-2,5x acima de qualquer estimativa razoável de WACC (~13-15%). Normalização parcial no 1T26 LTM reflete o salto do capital investido pelo aumento da dívida em 2025, mas ainda está muito acima do custo de capital. <strong>É a métrica que melhor sintetiza a qualidade do negócio</strong> — e justifica a política de payout. Comparativo setorial: ROIC da Vulcabras é mais que o dobro do da Alpargatas (16,4% LTM).
+  </div>
+
+  <div class="card">
+    <div class="card-title">Fluxo de Caixa 1T26 (R$ M)</div>
+    <table>
+      <tbody>
+        <tr><td>Caixa inicial (+) Aplicações</td><td class="tbl-num">206,8</td></tr>
+        <tr><td>(+) EBITDA</td><td class="tbl-num text-green">150,9</td></tr>
+        <tr><td>(+) Aumento de Capital (Stock Options)</td><td class="tbl-num text-green">4,3</td></tr>
+        <tr><td>(+) Outras Receitas</td><td class="tbl-num text-green">7,2</td></tr>
+        <tr><td>(+) Aumento do Passivo Bancário</td><td class="tbl-num text-green">45,5</td></tr>
+        <tr><td>(+) Redução da Necessidade de WK</td><td class="tbl-num text-green">34,0</td></tr>
+        <tr><td>(+) Variação Ativos/Passivos LP</td><td class="tbl-num text-green">3,0</td></tr>
+        <tr><td>(−) Resultado Financeiro Pago</td><td class="tbl-num text-red">−27,8</td></tr>
+        <tr><td>(−) Outras Despesas (IR/CSLL, leasing)</td><td class="tbl-num text-red">−16,6</td></tr>
+        <tr><td>(−) Investimentos em Imobilizado e Intangível</td><td class="tbl-num text-red">−44,5</td></tr>
+        <tr class="total"><td>Caixa Final (+) Aplicações</td><td class="tbl-num">362,8</td></tr>
+      </tbody>
+    </table>
+    <p class="text-small text-gray" style="margin-top:10px">FCO de R$ 138,3M no 1T26 (vs R$ 171,5M no 1T25). Queda reflete pagamento de juros muito maior (R$ 49,4M vs R$ 7,0M) pela dívida tomada para suportar o dividendo extraordinário de 2025.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Alocação de Capital</div>
+    <ul class="bullets">
+      <li><strong>1T26: nenhuma distribuição</strong> de dividendos — foco em desalavancagem</li>
+      <li>Histórico: 2024 R$ 783,0M · 2025 R$ 1.541,9M (~R$ 1,1B em extraordinários no 4T25)</li>
+      <li>Antecipação do pagamento de dividendos em 2025 foi calibrada para o que a geração de caixa da empresa suportaria</li>
+      <li>Mantiveram o discurso de devolver o excedente de caixa para os acionistas enquanto não houver projeto com retorno superior</li>
+      <li>Management sinalizou no call agenda menos ativa de distribuição ao longo de 2026</li>
+      <li>Programa de recompra ativo (até 10 mi de ações, vigência até set/2026); 3.869,2 mil ações em tesouraria (R$ 56,9M)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TRACKING -->
+<div class="tab-content hidden" id="tab-tracking">
+  <h2>Sinalizações 4T25 × Execução 1T26</h2>
+  <p style="margin-bottom:14px;color:var(--text-light);font-size:.92rem">A Vulcabras não divulga guidance formal/numérico, apenas sinalizações qualitativas em releases e calls. Confronto entre o discurso do 4T25 e a entrega do 1T26:</p>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>Sinalização (4T25)</th><th>Execução (1T26)</th><th class="text-center">Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Recuperação mais forte da margem bruta no 2S26</td><td>Margem bruta +0,2 p.p. a/a (40,4%)</td><td class="text-center"><span class="badge badge-green">Em linha</span></td></tr>
+        <tr><td>Propaganda estável ou em leve queda (% ROL) em 2026</td><td>Propaganda saiu de 5,1% para 5,8% da ROL</td><td class="text-center"><span class="badge badge-red">Furou</span></td></tr>
+        <tr><td>CAPEX 2026 em 3-4% da ROL (manutenção)</td><td>CAPEX 1T26 = R$ 47,7M (~6% da ROL anualizada)</td><td class="text-center"><span class="badge badge-orange">A monitorar</span></td></tr>
+        <tr><td>Desalavancar até zona ótima (0-0,5x)</td><td>Dív Líq/EBITDA caiu 0,9x → 0,7x</td><td class="text-center"><span class="badge badge-green">Em curso</span></td></tr>
+        <tr><td>Garantia de payout mínimo 25% do LL</td><td>1T26 sem distribuição (foco desalavancagem)</td><td class="text-center"><span class="badge badge-gray">Pendente 2026</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Leitura:</strong> das 5 sinalizações do 4T25, 3 estão em linha, 1 a monitorar e 1 furou por motivos compreensíveis (eventos 50 anos Olympikus). Credibilidade do management mantida.
+  </div>
+</div>
+
+<!-- PEERS -->
+<div class="tab-content hidden" id="tab-peers">
+  <h2>Comparativo com Alpargatas</h2>
+  <p style="margin-bottom:14px;color:var(--text-light);font-size:.92rem">Peer mais próximo no setor de calçados/athleisure brasileiro listado na B3. Comparativo direto do 1T26.</p>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>Métrica</th><th class="tbl-num">Vulcabras 1T26</th><th class="tbl-num">Alpargatas 1T26</th><th>Leitura</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Receita Líquida (R$ M)</td><td class="tbl-num">776,4</td><td class="tbl-num">1.229,5</td><td>Alpa maior em tamanho</td></tr>
+        <tr><td>Crescimento ROL a/a</td><td class="tbl-num">+10,7%</td><td class="tbl-num">+12,5%</td><td>Alpa marginalmente acima</td></tr>
+        <tr><td>Volume a/a</td><td class="tbl-num">+6,8%</td><td class="tbl-num">+8,4%</td><td>Alpa marginalmente acima</td></tr>
+        <tr><td>Margem Bruta</td><td class="tbl-num">40,4% (+0,2 p.p.)</td><td class="tbl-num">52,6% (+1,3 p.p.)</td><td>Alpa estrutural (Havaianas)</td></tr>
+        <tr><td>Margem EBITDA</td><td class="tbl-num">20,2% (+0,2 p.p.)</td><td class="tbl-num">24,4% (+5,5 p.p.)</td><td>Alpa em turnaround acelerado</td></tr>
+        <tr><td>LL Recorrente a/a</td><td class="tbl-num text-red">−18,9%</td><td class="tbl-num text-green">+44,8%</td><td>Alpa em base baixa</td></tr>
+        <tr><td>Dív Líq/EBITDA</td><td class="tbl-num">0,7x</td><td class="tbl-num">0,5x</td><td>Ambos confortáveis</td></tr>
+        <tr><td><strong>ROIC LTM</strong></td><td class="tbl-num"><strong>36,6%</strong></td><td class="tbl-num"><strong>16,4%</strong></td><td><strong>Vulc &gt; 2x Alpa</strong></td></tr>
+        <tr><td>CAPEX/ROL</td><td class="tbl-num">~6%</td><td class="tbl-num">~2,3%</td><td>Alpa asset-light</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">A favor de Vulcabras</div>
+      <ul class="bullets">
+        <li><strong>ROIC LTM &gt; 2x</strong> o da Alpargatas — gera mais que o dobro de retorno por real investido</li>
+        <li>Histórico mais agressivo de devolução de caixa: R$ 2,3 bilhões em 24 meses</li>
+        <li>Margem EBITDA já em patamar estrutural normalizado (20-22%)</li>
+        <li>Trajetória previsível: 23 trimestres consecutivos de crescimento</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">A favor de Alpargatas</div>
+      <ul class="bullets">
+        <li>Margem bruta estrutural superior por mix (Havaianas é high-margin)</li>
+        <li>Diversificação geográfica: ~25% internacional (Havaianas Internacional + Rothy's)</li>
+        <li>Expansão de margem mais acelerada (turnaround) — +5,5 p.p. EBITDA no trimestre</li>
+        <li>Asset-light pós-investimentos passados</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-green">
+    <strong>Conclusão:</strong> trajetórias inversas de alocação de capital — Vulcabras desalavancando após dividendo extraordinário; Alpargatas saindo de caixa líquido para ciclo crescente de remuneração. Ambas teses defensáveis, mas o spread ROIC favorece estruturalmente a Vulcabras na alocação de longo prazo.
+  </div>
+</div>
+
+<!-- SELL-SIDE -->
+<div class="tab-content hidden" id="tab-sellside">
+  <h2>Visão do Sell-Side · BTG Pactual</h2>
+
+  <div class="card-grid-3">
+    <div class="card text-center">
+      <h4>Rating</h4>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--green);margin-top:8px">BUY</div>
+      <p class="text-small text-gray">Mantido pós-resultado</p>
+    </div>
+    <div class="card text-center">
+      <h4>Preço-Alvo 12m</h4>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--text-dark);margin-top:8px">R$ 21,00</div>
+      <p class="text-small text-gray">vs nosso PT R$ 22,00</p>
+    </div>
+    <div class="card text-center">
+      <h4>Total Return Forecast</h4>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--green);margin-top:8px">+46,4%</div>
+      <p class="text-small text-gray">+32,3% upside + 14,0% DY</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Resultado vs Estimativas BTG (1T26)</div>
+    <table>
+      <thead>
+        <tr><th>R$ Milhões</th><th class="tbl-num">Realizado</th><th class="tbl-num">BTG Estimado</th><th class="tbl-num">A/E</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Receita Líquida</td><td class="tbl-num">776</td><td class="tbl-num">777</td><td class="tbl-num">−0,1%</td></tr>
+        <tr><td>Lucro Bruto</td><td class="tbl-num">314</td><td class="tbl-num">313</td><td class="tbl-num text-green">+0,1%</td></tr>
+        <tr><td>EBITDA Ajustado</td><td class="tbl-num">157</td><td class="tbl-num">155</td><td class="tbl-num text-green">+1,0%</td></tr>
+        <tr><td>LL Ajustado</td><td class="tbl-num">86</td><td class="tbl-num">87</td><td class="tbl-num">−0,8%</td></tr>
+        <tr><td>Margem Bruta</td><td class="tbl-num">40,4%</td><td class="tbl-num">40,3%</td><td class="tbl-num text-green">+10 bps</td></tr>
+        <tr><td>Margem EBITDA</td><td class="tbl-num">20,2%</td><td class="tbl-num">20,0%</td><td class="tbl-num text-green">+20 bps</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Projeções BTG 2025E–2027E</div>
+    <table>
+      <thead>
+        <tr><th>Métrica</th><th class="tbl-num">2025E</th><th class="tbl-num">2026E</th><th class="tbl-num">2027E</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Receita (R$ M)</td><td class="tbl-num">3.549</td><td class="tbl-num">4.004</td><td class="tbl-num">4.516</td></tr>
+        <tr><td>EBITDA (R$ M)</td><td class="tbl-num">869</td><td class="tbl-num">877</td><td class="tbl-num">1.019</td></tr>
+        <tr><td>Margem EBITDA</td><td class="tbl-num">24,5%</td><td class="tbl-num">21,9%</td><td class="tbl-num">22,6%</td></tr>
+        <tr><td>LL Ajustado (R$ M)</td><td class="tbl-num">567</td><td class="tbl-num">643</td><td class="tbl-num">765</td></tr>
+        <tr><td>EPS (R$)</td><td class="tbl-num">1,79</td><td class="tbl-num">2,03</td><td class="tbl-num">2,42</td></tr>
+        <tr><td>DPS (R$)</td><td class="tbl-num">2,23</td><td class="tbl-num">1,42</td><td class="tbl-num">1,57</td></tr>
+        <tr><td>Dividend Yield</td><td class="tbl-num">11,1%</td><td class="tbl-num">9,0%</td><td class="tbl-num">9,9%</td></tr>
+        <tr><td>RoIC (EBIT)</td><td class="tbl-num">29,6%</td><td class="tbl-num">24,3%</td><td class="tbl-num">26,7%</td></tr>
+        <tr><td>EV/EBITDA</td><td class="tbl-num">7,6x</td><td class="tbl-num">6,1x</td><td class="tbl-num">5,2x</td></tr>
+        <tr><td>P/E</td><td class="tbl-num">11,2x</td><td class="tbl-num">7,8x</td><td class="tbl-num">6,6x</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Leitura do BTG:</strong> "In-line Q1; Solid execution". Resultado veio em linha com as estimativas em todas as linhas principais. Banco enfatiza a tese de longo prazo (sinergias UA + Mizuno, 100% dos modelos Mizuno produzidos na fábrica) e valuation atrativa (8x P/E 2026). <strong>BTG não inclui Vulcabras entre seus top picks setoriais</strong> — favoritos da casa são pharma (RD, Panvel), SmartFit, Track&amp;Field e C&amp;A.
+  </div>
+</div>
+
+<!-- VALUATION -->
+<div class="tab-content hidden" id="tab-valuation">
+  <h2>Valuation — DCF M89</h2>
+  <p style="margin-bottom:14px;color:var(--text-light);font-size:.92rem">Modelo proprietário da equipe: FCFF descontado a WACC nominal BRL, com crescimento na perpetuidade alinhado à inflação de longo prazo.</p>
+
+  <div class="card-grid-3">
+    <div class="card text-center">
+      <h4>Preço Justo (DCF)</h4>
+      <div style="font-size:2rem;font-weight:700;color:var(--text-dark);margin-top:8px">R$ 16,06</div>
+      <p class="text-small text-gray">vs preço atual R$ 15,30</p>
+    </div>
+    <div class="card text-center">
+      <h4>Upside vs Preço Justo</h4>
+      <div style="font-size:2rem;font-weight:700;color:var(--green);margin-top:8px">+5,0%</div>
+      <p class="text-small text-gray">Excluindo dividendos projetados</p>
+    </div>
+    <div class="card text-center">
+      <h4>Equity Value Implícito</h4>
+      <div style="font-size:2rem;font-weight:700;color:var(--text-dark);margin-top:8px">R$ 5,67 B</div>
+      <p class="text-small text-gray">EV R$ 6,44 B − Dív Líq R$ 769M</p>
+    </div>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Premissas do DCF</div>
+      <table>
+        <tbody>
+          <tr><td>WACC nominal (BRL)</td><td class="tbl-num"><strong>13,71%</strong></td></tr>
+          <tr><td>Crescimento na perpetuidade (g)</td><td class="tbl-num">5,5%</td></tr>
+          <tr><td>EV (Enterprise Value)</td><td class="tbl-num">R$ 6.436,9M</td></tr>
+          <tr><td>(−) Dívida Líquida (4T25)</td><td class="tbl-num">R$ 769,4M</td></tr>
+          <tr><td>(=) Equity Value</td><td class="tbl-num"><strong>R$ 5.667,5M</strong></td></tr>
+          <tr><td>Nº de ações (mi)</td><td class="tbl-num">273,9</td></tr>
+          <tr><td>Preço Justo / Ação</td><td class="tbl-num"><strong>R$ 16,06</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Decomposição do WACC</div>
+      <table>
+        <tbody>
+          <tr><td>% Capital de Terceiros</td><td class="tbl-num">11,68%</td></tr>
+          <tr><td>% Capital Próprio</td><td class="tbl-num">88,32%</td></tr>
+          <tr><td>Beta desalavancado (Damodaran jan/25)</td><td class="tbl-num">1,06</td></tr>
+          <tr><td>Beta re-alavancado</td><td class="tbl-num">1,19</td></tr>
+          <tr><td>Risk Free (T-Bond)</td><td class="tbl-num">4,00%</td></tr>
+          <tr><td>Prêmio de Risco de Mercado</td><td class="tbl-num">4,50%</td></tr>
+          <tr><td>Prêmio de Risco País</td><td class="tbl-num">3,34%</td></tr>
+          <tr><td>Ke nominal (BRL)</td><td class="tbl-num">14,35%</td></tr>
+          <tr><td>Kd nominal after taxes</td><td class="tbl-num">8,83%</td></tr>
+          <tr class="total"><td>WACC nominal (BRL)</td><td class="tbl-num">13,71%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Sensibilidade — Preço Justo (R$) por Margem Bruta × Crescimento de Receita</div>
+    <p class="text-small text-gray" style="margin-bottom:12px">Variação direcional do PT em torno do caso-base (40% margem bruta · 7% crescimento de receita = R$ 16,06). Células em verde: PT acima do preço atual (R$ 15,30). Células em vermelho: PT abaixo.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Mg Bruta \ Cresc Receita</th>
+          <th class="tbl-num">3%</th>
+          <th class="tbl-num">5%</th>
+          <th class="tbl-num">7% (base)</th>
+          <th class="tbl-num">9%</th>
+          <th class="tbl-num">11%</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>38%</strong></td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">10,20</td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">11,80</td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">13,40</td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">15,00</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">16,60</td>
+        </tr>
+        <tr>
+          <td><strong>39%</strong></td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">11,53</td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">13,13</td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">14,73</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">16,33</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">17,93</td>
+        </tr>
+        <tr>
+          <td><strong>40% (base)</strong></td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">12,86</td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">14,46</td>
+          <td class="tbl-num" style="background:#1a2744;color:#fff;font-weight:700">16,06</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">17,66</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">19,26</td>
+        </tr>
+        <tr>
+          <td><strong>41%</strong></td>
+          <td class="tbl-num" style="background:#fce8ea;color:#dc3545;font-weight:600">14,19</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">15,79</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">17,39</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">18,99</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">20,59</td>
+        </tr>
+        <tr>
+          <td><strong>42%</strong></td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">15,52</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">17,12</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">18,72</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">20,32</td>
+          <td class="tbl-num" style="background:#e6f9ed;color:#28a745;font-weight:600">21,92</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="text-small text-gray" style="margin-top:12px"><strong>Elasticidade direcional:</strong> cada +1 p.p. de margem bruta ≈ +R$ 1,33 no PT · cada +1 p.p. de crescimento de receita ≈ +R$ 0,80 no PT. Estrutura simétrica em torno do caso-base, derivada do modelo DCF M89 com WACC 13,71% / g 5,5%.</p>
+  </div>
+
+  <div class="callout">
+    <strong>Leitura da sensibilidade:</strong> mantida a estrutura de WACC e g, o papel justifica o preço atual (R$ 15,30) em cenários onde <strong>(i)</strong> margem bruta ≥ 41% com crescimento ≥ 5%, ou <strong>(ii)</strong> margem bruta ≥ 40% com crescimento ≥ 7%, ou <strong>(iii)</strong> margem bruta 39-40% com crescimento de receita ≥ 9%. O caso-base do modelo (40% / 7%) embute o histórico recente e a guidance qualitativa da empresa sobre recuperação de margem no 2S26.
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Comparativo: nosso DCF × BTG</div>
+      <table>
+        <tbody>
+          <tr><th>Banco</th><th class="tbl-num">PT (R$)</th><th class="tbl-num">Δ vs R$ 15,30</th></tr>
+          <tr><td>DCF M89 (caso-base)</td><td class="tbl-num">16,06</td><td class="tbl-num text-green">+5,0%</td></tr>
+          <tr><td>BTG Pactual</td><td class="tbl-num">21,00</td><td class="tbl-num text-green">+37,3%</td></tr>
+          <tr><td>Diferença</td><td class="tbl-num">R$ 4,94</td><td class="tbl-num">—</td></tr>
+        </tbody>
+      </table>
+      <p class="text-small text-gray" style="margin-top:8px">Gap relevante. Provavelmente reflete <strong>WACC menor</strong> usado pelo BTG (Ke ~12,0% vs nossos 14,35%) e/ou premissas operacionais mais agressivas no FCFF.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">O que destravaria PT acima do BTG</div>
+      <ul class="bullets">
+        <li>Margem bruta sustentável acima de 41% — Vulcabras já viu 42-43% em 2024</li>
+        <li>Crescimento de receita acima de 9% nos próximos 3-5 anos</li>
+        <li>Redução do WACC com queda da Selic (cada -100 bps no WACC ≈ +R$ 2-3 no PT)</li>
+        <li>Recompra agressiva de ações reduzindo denominador</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TESE -->
+<div class="tab-content hidden" id="tab-tese">
+  <h2>Drivers da Tese</h2>
+  <p style="margin-bottom:14px;color:var(--text-light);font-size:.92rem">Síntese dos elementos analíticos do trimestre que sustentam o caso de investimento, sem recomendação formal. O target price do BTG está disponível na aba Sell-Side.</p>
+
+  <div class="card">
+    <div class="card-title">Por que monitorar Vulcabras de perto</div>
+    <ul class="bullets">
+      <li>ROIC ajustado LTM de <strong>36,6%</strong> vs <strong>16,4%</strong> da Alpargatas — gera mais que o dobro de retorno por real investido</li>
+      <li>Histórico mais agressivo de devolução de caixa entre peers: R$ 2,3B em 24 meses (2024-2025)</li>
+      <li>Margem EBITDA já em patamar estrutural normalizado (20-22%), enquanto Alpargatas ainda recupera margem em ciclo de turnaround</li>
+      <li>Trajetória previsível: 23 trimestres consecutivos de crescimento de receita</li>
+      <li>Negocia em desconto vs peers (8,0x EV/EBITDA LTM) apesar do ROIC superior</li>
+    </ul>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">O que mudou neste trimestre</div>
+      <ul class="bullets">
+        <li>Volume voltou a crescer em Calçados Esportivos após queda no 4T25</li>
+        <li>Margem bruta começou a recuperar antes do esperado (sinalização era 2S26)</li>
+        <li>Desalavancagem ágil — 0,9x → 0,7x em um único trimestre</li>
+        <li>LL caiu por overhang financeiro do dividendo extraordinário de 2025, não por deterioração operacional</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">O que NÃO mudou</div>
+      <ul class="bullets">
+        <li>Tese de mix premium e disciplina comercial intacta</li>
+        <li>ROIC ajustado segue muito acima do WACC</li>
+        <li>Trajetória de crescimento de top-line mantida</li>
+        <li>Compromisso com payout estrutural reafirmado, ainda que postergado em 2026</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card-grid-2">
+    <div class="card">
+      <div class="card-title">Catalisadores próximos</div>
+      <ul class="bullets">
+        <li><strong>2T26:</strong> entrada da família Corre nova destrava reaceleração do e-commerce e reequilibra volume × preço em Calçados Esportivos</li>
+        <li><strong>2S26:</strong> repasse de preço já feito compensa MP pressionada; aceleração da recuperação da margem bruta</li>
+        <li><strong>4T26:</strong> potencial retomada da distribuição regular de dividendos após conclusão da desalavancagem</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Riscos a monitorar</div>
+      <ul class="bullets">
+        <li>Matérias-primas pressionando 2T26 antes do repasse de preço do 2S26</li>
+        <li>Frete começou a pressionar no fim do 1T26 e deve aparecer com mais força no 2T26</li>
+        <li>Escala 6x1 se aprovada · impacto trabalhista de todo o setor</li>
+        <li>Reforma tributária exigirá investimento adicional em sistemas ao longo de 2026</li>
+        <li>Concentração no mercado interno (97,3% da ROL)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Próximo gatilho de revisão:</strong> 2T26 release (1ª semana de agosto/2026). Checar: (i) reaceleração do e-commerce com Corre nova; (ii) extensão da pressão de MP; (iii) sinalização concreta sobre cronograma de retomada de payout; (iv) preço médio voltando a crescer em linha com o IPCA Calçados; (v) ajustes no modelo DCF caso margem bruta ou crescimento divirjam materialmente do caso-base.
+  </div>
+</div>
+
+<footer>
+  M89 Research · Uso interno · Não constitui recomendação pública de investimento · Dados baseados em release, ITR, call de resultados e BTG Pactual 1T26
+</footer>
+
+<script>
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#343a40';
+Chart.defaults.plugins.legend.position = 'bottom';
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.plugins.legend.labels.padding = 12;
+
+const NAVY = '#1a2744', BLUE = '#2c7be5', BLUE_LIGHT='#5da3f0', GREEN = '#28a745', RED = '#dc3545', ORANGE = '#e67e22', GRAY = '#6c757d';
+const quarters17 = ['1T22','2T22','3T22','4T22','1T23','2T23','3T23','4T23','1T24','2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'];
+const quarters5 = ['1T25','2T25','3T25','4T25','1T26'];
+const charts = {};
+
+function showTab(ev, id){
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+  document.getElementById('tab-' + id).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  ev.target.classList.add('active');
+  initCharts(id);
+}
+
+function initCharts(tab){
+  if(tab==='macro' && !charts.ipca) charts.ipca = mkIPCA();
+  if(tab==='receita'){
+    if(!charts.receita) charts.receita = mkReceita();
+    if(!charts.volprice) charts.volprice = mkVolPrice();
+  }
+  if(tab==='ecommerce' && !charts.ecomm) charts.ecomm = mkEcomm();
+  if(tab==='margem' && !charts.lb) charts.lb = mkLB();
+  if(tab==='lucro'){
+    if(!charts.ebitda) charts.ebitda = mkEBITDA();
+    if(!charts.ll) charts.ll = mkLL();
+  }
+  if(tab==='capital'){
+    if(!charts.divida) charts.divida = mkDivida();
+    if(!charts.wk) charts.wk = mkWK();
+  }
+  if(tab==='roic' && !charts.roic) charts.roic = mkROIC();
+}
+
+function mkIPCA(){
+  return new Chart(document.getElementById('chartIPCA'),{
+    type:'line',
+    data:{labels:quarters17,datasets:[
+      {label:'Ticket Médio Vulcabras',data:[100,110,110,120,121,123,132,128,125,132,133,140,140,149,150,157,145],borderColor:NAVY,backgroundColor:NAVY,tension:.25,borderWidth:2.5,pointRadius:3},
+      {label:'IPCA Calçados',data:[100,105,110,116,117,121,121,122,121,123,125,126,127,128,130,132,133],borderColor:BLUE,backgroundColor:BLUE,tension:.25,borderWidth:2.5,pointRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{min:90,grid:{color:'#eef0f3'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkReceita(){
+  return new Chart(document.getElementById('chartReceita'),{
+    type:'bar',
+    data:{labels:quarters17,datasets:[{label:'Receita Líquida (R$ M)',data:[478,657,664,739,571,724,731,791,597,761,785,906,701,895,956,1009,776],backgroundColor:NAVY,borderRadius:3}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#eef0f3'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkVolPrice(){
+  return new Chart(document.getElementById('chartVolPrice'),{
+    type:'bar',
+    data:{labels:quarters17,datasets:[
+      {type:'bar',label:'Volume (mi pares/peças)',data:[6.4,8.4,8.3,8.6,6.7,8.3,7.8,8.7,6.7,8.2,8.3,9.1,7.1,8.5,9.0,9.2,7.6],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'Ticket Médio (R$/par)',data:[74.3,78.4,80.1,85.5,85.7,87.4,93.6,91.2,88.9,93.2,94.2,99.0,98.9,105.3,106.5,110.1,102.5],borderColor:BLUE,backgroundColor:BLUE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',title:{display:true,text:'Volume (mi)'},grid:{color:'#eef0f3'}},y1:{position:'right',title:{display:true,text:'Ticket Médio (R$)'},grid:{display:false}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkEcomm(){
+  return new Chart(document.getElementById('chartEcomm'),{
+    type:'bar',
+    data:{labels:quarters17,datasets:[
+      {type:'bar',label:'Receita E-commerce (R$ M)',data:[23.0,27.9,38.4,47.2,50.7,57.1,76.9,94.9,77.0,98.7,115.5,142.4,118.4,132.1,144.8,147.8,124.4],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'% da ROL',data:[4.8,4.2,5.8,6.4,8.9,7.9,10.5,12.0,12.9,13.0,14.7,15.7,16.9,14.8,15.2,14.7,16.0],borderColor:BLUE,backgroundColor:BLUE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',title:{display:true,text:'R$ M'},grid:{color:'#eef0f3'}},y1:{position:'right',title:{display:true,text:'%'},grid:{display:false},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkLB(){
+  return new Chart(document.getElementById('chartLB'),{
+    type:'bar',
+    data:{labels:quarters17,datasets:[
+      {type:'bar',label:'Lucro Bruto (R$ M)',data:[168,236,250,283,225,300,314,338,240,324,338,377,282,365,396,418,314],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'Margem Bruta (%)',data:[35.2,36.0,37.7,38.3,39.5,41.4,42.9,42.7,40.2,42.5,43.1,41.6,40.2,40.8,41.4,41.4,40.4],borderColor:BLUE,backgroundColor:BLUE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',grid:{color:'#eef0f3'}},y1:{position:'right',min:30,max:50,grid:{display:false},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkEBITDA(){
+  const lbls=['2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'];
+  return new Chart(document.getElementById('chartEBITDA'),{
+    type:'bar',
+    data:{labels:lbls,datasets:[
+      {type:'bar',label:'EBITDA Recorrente (R$ M)',data:[175.4,185.6,192.2,140.4,190.8,211.2,220.7,156.9],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'Margem EBITDA Rec. (%)',data:[23.0,23.6,21.2,20.0,21.3,22.1,21.9,20.2],borderColor:BLUE,backgroundColor:BLUE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',grid:{color:'#eef0f3'}},y1:{position:'right',min:15,max:30,grid:{display:false},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkLL(){
+  return new Chart(document.getElementById('chartLL'),{
+    type:'bar',
+    data:{labels:quarters17,datasets:[
+      {type:'bar',label:'LL Recorrente (R$ M)',data:[54,104,98,214,84,134,128,145,89,140,146,169,106,145,163,159,86],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'Margem Líquida (%)',data:[11.3,15.8,14.8,29.0,14.6,18.5,17.4,18.3,14.9,18.4,18.7,18.7,15.1,16.2,17.1,15.7,11.1],borderColor:BLUE,backgroundColor:BLUE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',grid:{color:'#eef0f3'}},y1:{position:'right',min:0,max:35,grid:{display:false},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkDivida(){
+  return new Chart(document.getElementById('chartDivida'),{
+    type:'bar',
+    data:{labels:quarters5,datasets:[
+      {type:'bar',label:'Dívida Líquida (R$ M)',data:[10.1,139.1,436.3,769.4,658.9],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'Dív Líq/EBITDA (LTM)',data:[0.0,0.2,0.5,0.9,0.7],borderColor:BLUE,backgroundColor:BLUE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:4}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',title:{display:true,text:'R$ M'},grid:{color:'#eef0f3'}},y1:{position:'right',title:{display:true,text:'Múltiplo'},min:0,max:1.2,grid:{display:false},ticks:{callback:v=>v.toFixed(1)+'x'}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkWK(){
+  return new Chart(document.getElementById('chartWK'),{
+    type:'bar',
+    data:{labels:quarters5,datasets:[
+      {type:'bar',label:'Capital de Giro (R$ M)',data:[1448.4,1655.9,1688.1,1748.2,1742.3],backgroundColor:NAVY,yAxisID:'y',borderRadius:3},
+      {type:'line',label:'Ciclo Financeiro (dias)',data:[143,157,153,153,149],borderColor:ORANGE,backgroundColor:ORANGE,tension:.2,yAxisID:'y1',borderWidth:2.5,pointRadius:4}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{position:'left',title:{display:true,text:'R$ M'},grid:{color:'#eef0f3'}},y1:{position:'right',title:{display:true,text:'Dias'},min:130,max:165,grid:{display:false}},x:{grid:{display:false}}}}
+  });
+}
+
+function mkROIC(){
+  return new Chart(document.getElementById('chartROIC'),{
+    type:'bar',
+    data:{labels:['2023','2024','2025','1T26 LTM'],datasets:[
+      {label:'ROIC',data:[25.0,26.1,39.9,33.6],backgroundColor:NAVY,borderRadius:3},
+      {label:'ROIC Ajustado',data:[28.4,29.5,44.2,36.6],backgroundColor:BLUE,borderRadius:3}
+    ]},
+    options:{maintainAspectRatio:false,scales:{y:{grid:{color:'#eef0f3'},ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}}}
+  });
+}
+</script>
+</body>
+</html>
