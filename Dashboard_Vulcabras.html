@@ -32,8 +32,13 @@ a{color:var(--blue);text-decoration:none}
 .fw-bold{font-weight:700}
 .hidden{display:none!important}
 
-.top-bar{position:sticky;top:0;z-index:1000;background:var(--navy);padding:6px 24px;font-size:.85rem;color:rgba(255,255,255,.85);display:flex;justify-content:space-between;align-items:center}
-.top-bar .brand{color:#fff;font-weight:700;letter-spacing:1px}
+.back-bar{position:sticky;top:0;z-index:1000;background:#1a2744;padding:10px 24px;width:100%;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+.back-button{display:inline-block;color:#fff;text-decoration:none;font-size:13px;font-weight:600;padding:6px 14px;border-radius:6px;transition:background 0.15s}
+.back-button:hover{background:rgba(255,255,255,0.1);text-decoration:none}
+@media (max-width:720px){
+  .back-bar{padding:8px 12px}
+  .back-button{padding:5px 12px}
+}
 
 .page-header{background:var(--navy);color:var(--white);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;border-bottom:3px solid var(--blue)}
 .header-left{display:flex;align-items:center;gap:18px}
@@ -52,7 +57,7 @@ a{color:var(--blue);text-decoration:none}
 .kpi-value{font-size:1.3rem;font-weight:700;color:var(--text-dark);margin-bottom:2px;line-height:1.2}
 .kpi-change{font-size:.78rem;font-weight:600}
 
-.tab-bar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;overflow-x:auto;position:sticky;top:33px;z-index:50;box-shadow:0 2px 4px rgba(0,0,0,.04)}
+.tab-bar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;overflow-x:auto;position:sticky;top:42px;z-index:50;box-shadow:0 2px 4px rgba(0,0,0,.04)}
 .tab-btn{background:none;border:none;padding:14px 18px;font-family:var(--font);font-size:.85rem;color:var(--gray);font-weight:600;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s}
 .tab-btn:hover{color:var(--text-dark)}
 .tab-btn.active{color:var(--navy);border-bottom-color:var(--blue)}
@@ -105,9 +110,8 @@ footer{padding:24px 32px;text-align:center;color:var(--gray);font-size:.78rem;bo
 </head>
 <body>
 
-<div class="top-bar">
-  <span class="brand">M89 RESEARCH</span>
-  <span>Buy-Side Internal · Vulcabras 1T26</span>
+<div class="back-bar">
+  <a href="index.html" class="back-button">← Voltar ao Dashboard</a>
 </div>
 
 <div class="page-header">
