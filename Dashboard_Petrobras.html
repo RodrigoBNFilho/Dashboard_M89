@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M89 Research — Petrobras 1T26</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #1A2744;
+  --blue: #2C7BE5;
+  --green: #28A745;
+  --red: #DC3545;
+  --orange: #E67E22;
+  --gray: #6C757D;
+  --light-gray: #F8F9FA;
+  --border: #E5E7EB;
+  --text: #1F2937;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #FAFBFC;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky;
+  top: 0;
+  background: var(--navy);
+  color: white;
+  padding: 10px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.topbar .brand { font-weight: bold; font-size: 14px; letter-spacing: 1px; }
+.topbar .company { font-size: 13px; opacity: 0.9; }
+.topbar .actions { display: flex; gap: 8px; }
+.btn-print {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-print:hover { background: rgba(255,255,255,0.25); }
+
+/* Page header */
+.header {
+  background: linear-gradient(135deg, var(--navy) 0%, #2a3a5f 100%);
+  color: white;
+  padding: 32px 24px;
+}
+.header-inner { max-width: 1400px; margin: 0 auto; }
+.header .badges { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+.header .subtitle { font-size: 14px; opacity: 0.85; margin-bottom: 14px; }
+.header .meta {
+  display: flex;
+  gap: 24px;
+  font-size: 12px;
+  opacity: 0.85;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.header .meta span strong { font-weight: 600; opacity: 1; }
+.header .price-badge {
+  display: inline-block;
+  background: rgba(40, 167, 69, 0.2);
+  border: 1px solid rgba(40, 167, 69, 0.5);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* KPI strip */
+.kpi-strip {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+}
+.kpi-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px;
+}
+.kpi {
+  text-align: center;
+  padding: 12px;
+  border-right: 1px solid var(--border);
+}
+.kpi:last-child { border-right: none; }
+.kpi .label {
+  font-size: 11px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.kpi .value { font-size: 20px; font-weight: 700; color: var(--navy); }
+.kpi .delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+.delta.up { color: var(--green); }
+.delta.down { color: var(--red); }
+.delta.neutral { color: var(--gray); }
+
+/* Tabs */
+.tabs-nav {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 50px;
+  z-index: 99;
+}
+.tabs-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--navy); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* Content */
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Cards */
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.card h2 {
+  color: var(--navy);
+  font-size: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--navy);
+}
+.card h3 {
+  color: var(--navy);
+  font-size: 14px;
+  margin: 12px 0 8px;
+  font-weight: 600;
+}
+.tese {
+  background: #EEF4FF;
+  border-left: 4px solid var(--blue);
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--navy);
+  font-style: italic;
+  margin-bottom: 14px;
+}
+.tese strong { font-style: normal; font-weight: 700; }
+
+ul.bullets { padding-left: 20px; }
+ul.bullets li {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+ul.bullets ul { margin-top: 6px; padding-left: 20px; }
+ul.bullets ul li { margin-bottom: 4px; color: var(--gray); font-size: 12.5px; }
+.bullets li strong { color: var(--navy); }
+
+/* Tables */
+.table-wrapper { overflow-x: auto; margin: 8px 0; }
+table.dt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+table.dt thead { background: var(--navy); color: white; }
+table.dt th, table.dt td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+table.dt th { font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+table.dt tbody tr:nth-child(even) { background: var(--light-gray); }
+table.dt tbody tr:hover { background: #EEF4FF; }
+table.dt td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.dt td.up { color: var(--green); font-weight: 600; }
+table.dt td.down { color: var(--red); font-weight: 600; }
+
+/* Sensitivity matrix */
+.sens-table { font-size: 11.5px; }
+.sens-table th, .sens-table td { padding: 6px 8px; text-align: center; }
+.sens-table thead { background: var(--navy); color: white; }
+.sens-table tbody td.num { font-variant-numeric: tabular-nums; }
+.sens-table .row-label { background: var(--navy); color: white; font-weight: 600; }
+
+/* Charts */
+.chart-wrapper {
+  position: relative;
+  height: 320px;
+  margin: 12px 0;
+}
+.chart-wrapper.tall { height: 380px; }
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.chart-grid > .card { margin-bottom: 0; }
+
+/* Metric cards */
+.metric-card {
+  background: var(--light-gray);
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.metric-card .label { font-size: 11px; color: var(--gray); text-transform: uppercase; }
+.metric-card .value { font-size: 20px; font-weight: 700; color: var(--navy); margin: 4px 0; }
+.metric-card.highlight { background: #EEF4FF; border-color: var(--blue); }
+.metric-card.highlight .value { color: var(--blue); font-size: 26px; }
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+
+/* Sliders */
+.slider-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 12px 0;
+}
+.slider-control {
+  background: var(--light-gray);
+  padding: 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.slider-control label {
+  display: block;
+  font-size: 12px;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.slider-control .slider-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.slider-control input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+}
+.slider-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--blue);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.slider-control input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--blue);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.slider-range-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--gray);
+  margin-top: 4px;
+}
+
+/* Footer */
+.footer {
+  background: var(--navy);
+  color: white;
+  padding: 16px 24px;
+  text-align: center;
+  font-size: 11px;
+  opacity: 0.85;
+  margin-top: 40px;
+}
+
+/* Status badges */
+.status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status.up { background: #D4EDDA; color: #155724; }
+.status.down { background: #F8D7DA; color: #721C24; }
+.status.neutral { background: #E2E3E5; color: #383D41; }
+.status.acima { background: #D4EDDA; color: #155724; }
+.status.linha { background: #D1ECF1; color: #0C5460; }
+.status.abaixo { background: #FFF3CD; color: #856404; }
+
+/* Back bar */
+.back-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  background: #1a2744;
+  padding: 10px 24px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+.back-button {
+  display: inline-block;
+  color: white;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.back-button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Push the existing sticky topbar below the back-bar so both remain visible */
+.topbar { top: 40px; }
+
+/* Print */
+@media print {
+  .back-bar, .topbar, .tabs-nav, .btn-print { display: none; }
+  .tab-panel { display: block !important; page-break-after: always; }
+  .header { padding: 16px; }
+  .card { box-shadow: none; page-break-inside: avoid; }
+}
+
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-grid { grid-template-columns: 1fr; }
+  .header h1 { font-size: 22px; }
+}
+
+@media (max-width: 720px) {
+  .back-bar { padding: 8px 12px; }
+  .back-button { padding: 5px 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="back-bar">
+  <a href="index.html" class="back-button">← Voltar ao Dashboard</a>
+</div>
+
+<div class="topbar">
+  <div class="brand">M89 RESEARCH</div>
+  <div class="company">PETROBRAS · PETR3 / PETR4 / PBR / PBRA</div>
+  <div class="actions">
+    <button class="btn-print" onclick="window.print()">Imprimir / PDF</button>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="badges">
+      <span class="badge">PETR4</span>
+      <span class="badge">ÓLEO & GÁS</span>
+      <span class="badge">B3 · NYSE</span>
+    </div>
+    <h1>Petrobras — Resultado 1T26</h1>
+    <div class="subtitle">Recorde de produção encontra Brent alto, mas lag asiático adia a captura. Miss mecânico, reversível no 2T26.</div>
+    <div class="meta">
+      <span><strong>Release:</strong> 11/mai/2026</span>
+      <span><strong>Webcast:</strong> 12/mai/2026</span>
+      <span><strong>Posição do fundo:</strong> Comprado</span>
+      <span><strong>Uso:</strong> Interno</span>
+      <span class="price-badge">PETR4 R$ 46,43</span>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi-grid">
+    <div class="kpi"><div class="label">EBITDA Aj.</div><div class="value">US$ 11,7B</div><div class="delta down">-10% vs cons</div></div>
+    <div class="kpi"><div class="label">LL Recorrente</div><div class="value">R$ 23,8B</div><div class="delta up">+0,9% YoY</div></div>
+    <div class="kpi"><div class="label">Produção</div><div class="value">3,23 MMboed</div><div class="delta up">+16,1% YoY · recorde</div></div>
+    <div class="kpi"><div class="label">FCO</div><div class="value">R$ 44,0B</div><div class="delta down">-10,9% YoY · WK</div></div>
+    <div class="kpi"><div class="label">FCL</div><div class="value">R$ 20,1B</div><div class="delta down">-22,9% YoY</div></div>
+    <div class="kpi"><div class="label">DPS</div><div class="value">R$ 0,70</div><div class="delta neutral">1,5% · -25% cons</div></div>
+    <div class="kpi"><div class="label">ND/EBITDA</div><div class="value">1,43x</div><div class="delta neutral">estável t/t</div></div>
+  </div>
+</div>
+
+<div class="tabs-nav">
+  <div class="tabs-inner">
+    <button class="tab-btn active" data-tab="destaques">Destaques</button>
+    <button class="tab-btn" data-tab="macro">Macro</button>
+    <button class="tab-btn" data-tab="ep">E&P</button>
+    <button class="tab-btn" data-tab="rtc">Refino</button>
+    <button class="tab-btn" data-tab="ge">Gás & Energia</button>
+    <button class="tab-btn" data-tab="consolidado">Consolidado</button>
+    <button class="tab-btn" data-tab="braskem">Braskem</button>
+    <button class="tab-btn" data-tab="guidance">Guidance</button>
+    <button class="tab-btn" data-tab="sellside">Sell-Side</button>
+    <button class="tab-btn" data-tab="valuation">Valuation</button>
+    <button class="tab-btn" data-tab="tese">Tese</button>
+    <button class="tab-btn" data-tab="calendario">Calendário</button>
+    <button class="tab-btn" data-tab="relatorio">Relatório Completo</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- DESTAQUES -->
+<div class="tab-panel active" id="destaques">
+  <div class="card">
+    <h2>Destaques do trimestre</h2>
+    <ul class="bullets">
+      <li><strong>EBITDA 10% abaixo do consenso</strong>, mas miss mecânico (lag asiático + 80 mil bpd em trânsito) e reversível no 2T26.</li>
+      <li><strong>Produção de óleo em 2,58 MMbpd no 1T26 e 2,73 MMbpd em abril</strong>, acima do guidance 2026 (2,5 ±4%).</li>
+      <li><strong>Subvenções de R$ 1,52/l blindam o diesel</strong>; gasolina anunciada após o call mas paridade ainda não fecha.</li>
+      <li><strong>DPS 25% abaixo do consenso</strong> e extraordinário explicitamente descartado em 2026.</li>
+      <li><strong>Caixa em excesso vai para investimentos</strong> (SEAP I/II já saiu do CAPEX target) e dívida, não distribuição.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- MACRO -->
+<div class="tab-panel" id="macro">
+  <div class="card">
+    <h2>Guerra Oriente Médio</h2>
+    <ul class="bullets">
+      <li>Conflito estourou em 28/fev e Brent saiu de ~US$ 70 nos dois primeiros meses para ~US$ 100 em março.</li>
+      <li>Brent calendário do trimestre fechou em US$ 80,61 — mas Petrobras capturou majoritariamente preços de jan/fev.</li>
+      <li>81 mil bpd ficaram em trânsito e não foram reconhecidos — esse volume vira receita no 2T26.</li>
+      <li>Em caso de cessar-fogo, o preço realizado vai se beneficiar dessa mesma dinâmica (com sinal trocado).</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Subvenção do diesel</h2>
+    <ul class="bullets">
+      <li>Petrobras vende abaixo da paridade e Governo paga a diferença via subvenção. Mecânica protege margem da empresa e preserva preço na bomba.</li>
+      <li>Receita reconhecida no DRE; caixa só entra após processo operacional do Governo (lag no FCO).
+        <ul>
+          <li>Subvenção gerou R$ 672M de receita, mas caixa ainda zerado (R$ 741M em contas a receber)</li>
+          <li>Dinâmica parecida com 2018 no subsídio a caminhoneiros</li>
+        </ul>
+      </li>
+      <li>Três ondas de subvenção:
+        <ul>
+          <li>12/mar: R$ 0,32/l (nessa data zerou PIS/COFINS, total R$ 0,64/l)</li>
+          <li>12/abr: R$ 0,80/l adicional doméstico + R$ 1,20/l importado</li>
+          <li>13/mai: R$ 0,32/l renovado, substituindo a volta do PIS/COFINS</li>
+        </ul>
+      </li>
+      <li>Aumento de R$ 0,02/l na bomba em março representou +46% para a Petrobras.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Subvenção da gasolina</h2>
+    <ul class="bullets">
+      <li>Anunciada um dia após o call; Magda deixou a entender no call.</li>
+      <li>Mecânica igual ao diesel, mas mais delicada por competir com etanol.</li>
+      <li>Até R$ 0,89/l (PIS/COFINS + CIDE), inicialmente entre R$ 0,40-0,45.</li>
+      <li>Petrobras vendendo gasolina a R$ 2,57 vs paridade R$ 4,63 — gap reduz mas não fecha sem aumento na bomba.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Política de preços</h2>
+    <ul class="bullets">
+      <li>Discurso: não repassar volatilidade, mas seguir tendência de longo prazo.</li>
+      <li>Combo atual: subvenções no diesel e gasolina + alongamento de prazos no QAV.</li>
+      <li>Parceria com Governo Federal relevante nesse momento de Brent elevado.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Câmbio</h2>
+    <ul class="bullets">
+      <li>USDBRL médio R$ 5,26 no 1T26 (-9,9% YoY).</li>
+      <li>Apreciação do real diminui receita reportada e eleva lifting cost em USD.</li>
+      <li>Ganho não-caixa de R$ +12,3B sobre remarcação da dívida em dólar — infla LL contábil mas não muda operação.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Novas geografias</h2>
+    <ul class="bullets">
+      <li><strong>Margem Equatorial:</strong> prioridade #1; broca a ~1.000m do alvo Morpho.</li>
+      <li><strong>Sergipe Águas Profundas (SEAP I e II):</strong> incorporado por Brent alto; 240 mbpd óleo + 22 MMm³/d gás.</li>
+      <li><strong>México (Pemex):</strong> águas ultraprofundas do Golfo do México mexicano; ainda longe de materializar.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- E&P -->
+<div class="tab-panel" id="ep">
+  <div class="card">
+    <h2>Produção</h2>
+    <ul class="bullets">
+      <li><strong>Produção total 3,23 MMboed</strong> (+3,7% t/t, +16,1% YoY) — recorde histórico.</li>
+      <li>Produção própria de óleo 2,58 MMbpd, sendo 2,18 MMbpd do pré-sal.</li>
+      <li>Abril já em 2,73 MMbpd, quase no topo do guidance 2026 (2,5 MMbpd ±4%).</li>
+      <li>Alavancas: ramp-up P-78 (Búzios 6) e FPSO Alexandre de Gusmão (Mero).</li>
+      <li>10 novos poços no trimestre (6 pré-sal + 4 pós-sal).</li>
+      <li>Eficiência: Almirante Tamandaré projetada para 225 mbpd, capacidade ampliada para 270 mbpd. Mesmo movimento em mais 4 plataformas (+45 mbpd cada).</li>
+    </ul>
+  </div>
+
+  <div class="chart-grid">
+    <div class="card">
+      <h2>EBITDA E&P vs Brent</h2>
+      <div class="chart-wrapper"><canvas id="chart-ep-ebitda"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Produção (Mbpd)</h2>
+      <div class="chart-wrapper"><canvas id="chart-ep-prod"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Receita</h2>
+    <ul class="bullets">
+      <li>Receita E&P R$ 84,0B (+8,8% t/t) com Brent +27% no mesmo período — captura ficou bem aquém.</li>
+      <li>Exportação asiática precifica com Brent do mês anterior à chegada e reconhece receita na chegada.</li>
+      <li>81 mil bpd ficaram em trânsito — vira receita no 2T26.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Lifting cost</h2>
+    <ul class="bullets">
+      <li>Lifting cost Brasil US$ 6,76/boe (+5,6% t/t, -0,6% YoY).</li>
+      <li>Pré-sal subiu 10,7% t/t e 5% YoY — trajetória de alta desde 2024 é algo a se prestar atenção.</li>
+      <li>Alavancas: câmbio + bônus de performance Almirante Barroso/Tamandaré + ramp-up P-78.</li>
+      <li>Ainda muito competitivo globalmente.</li>
+    </ul>
+    <div class="chart-wrapper"><canvas id="chart-lifting"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h2>Campo de Búzios</h2>
+    <ul class="bullets">
+      <li>P-79 (Búzios 8) entrou 3 meses antecipada vs plano original.</li>
+      <li>8ª plataforma em Búzios; capacidade 180 mbpd; campo todo em ~1,08 MMbpd, mira 1,5 MMbpd em breve.</li>
+      <li>Estratégia eficiente: planejado para 8 poços, vão topar capacidade com 3-4.</li>
+      <li>Crescimento 2026 vem majoritariamente de campanhas de interligação em plataformas já entregues.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>CAPEX</h2>
+    <ul class="bullets">
+      <li>US$ 4,5B no trimestre (87% do CAPEX total da Petrobras).</li>
+      <li>Subsea +75% YoY — campanhas de interligação em Búzios.</li>
+      <li>Poços +11%, plataformas +22%.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- RTC -->
+<div class="tab-panel" id="rtc">
+  <div class="card">
+    <h2>Produção e FUT</h2>
+    <ul class="bullets">
+      <li>Produção de derivados 1.816 Mbpd (+6,7% t/t, +6,4% YoY) — recorde histórico.</li>
+      <li><strong>FUT atingiu 95% no trimestre, 97,4% em março e acima de 100% em abr/mai</strong> — maior nível desde dez/2014.</li>
+      <li>Diesel S10 recorde mensal em março: 512 mbpd (derivado de maior valor agregado).</li>
+      <li>68% da produção em derivados de maior valor agregado (diesel + gasolina + QAV).</li>
+    </ul>
+  </div>
+
+  <div class="chart-grid">
+    <div class="card">
+      <h2>EBITDA RTC vs Preço Derivados</h2>
+      <div class="chart-wrapper"><canvas id="chart-rtc-ebitda"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Custo Refino vs Margem Bruta</h2>
+      <div class="chart-wrapper"><canvas id="chart-rtc-custo"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Resultado Financeiro</h2>
+    <div class="tese"><strong>Tese:</strong> Lucro bruto reportado de R$ 23,8B é enganoso. Quase metade veio de ganho contábil de estoque, não de melhora operacional.</div>
+    <ul class="bullets">
+      <li>Petrobras refinou petróleo comprado a Brent baixo (jan/fev US$ 70-75) e vendeu derivados a preço de março (US$ 90).</li>
+      <li>No 4T25 ocorreu o oposto: Brent caindo, custo de estoque alto entrando, vendas a preço já baixo.</li>
+      <li><strong>Lucro bruto ajustado: R$ 16,9B no 1T26 vs R$ 15,3B no 4T25 (+10% t/t)</strong> — crescimento real é de 10%, não de 83% reportado.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Autossuficiência</h2>
+    <ul class="bullets">
+      <li>PN 2026-30 atual prevê 85% da demanda de diesel coberta até 2030.</li>
+      <li>Próximo plano deve mirar 100% diesel + 100% gasolina até 2031.</li>
+      <li>"Geração anterior à minha gostava muito de petróleo e gás, mas essa diretoria gosta mesmo é de dinheiro" — não pretendem fazer investimentos sem retorno.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Comércio externo</h2>
+    <ul class="bullets">
+      <li>Importações caíram 32% t/t.</li>
+      <li>Vão precisar voltar a importar diesel no 2S por sazonalidade safra — subvenção R$ 1,20/l garante operação sem prejuízo.</li>
+      <li>Exportações: 62% do petróleo para China (vs 33% no 1T25), 15% para Índia.</li>
+      <li>Óleo combustível exportado 187 mbpd — recorde desde 1T22.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- GAS & ENERGIA -->
+<div class="tab-panel" id="ge">
+  <div class="card">
+    <h2>Resultado do segmento</h2>
+    <ul class="bullets">
+      <li>EBITDA R$ 1,75B (-24% t/t, +234% YoY); margem EBITDA 15%.</li>
+      <li>Queda t/t é técnica — 4T25 concentrou reconhecimento de receitas anuais de contratos.</li>
+      <li>LRCAP 2026: contratação de 9 UTEs, receita fixa de R$ 44B no horizonte total dos contratos (~R$ 4,5B/ano de 2026-2031).</li>
+      <li>Substituição estrutural de importação por gás nacional: Bolívia em 7 MMm³/d (-36% YoY), GNL zerado no trimestre.</li>
+      <li>UFN-III retomada (operação 2029); reversão de impairment R$ +2,2B já entrou no resultado RTC.</li>
+    </ul>
+    <div class="chart-wrapper"><canvas id="chart-ge-ebitda"></canvas></div>
+  </div>
+</div>
+
+<!-- CONSOLIDADO -->
+<div class="tab-panel" id="consolidado">
+  <div class="card">
+    <h2>Principais métricas financeiras</h2>
+    <ul class="bullets">
+      <li><strong>EBITDA Ajustado R$ 61,7B</strong> (+4,5% t/t, -1,0% YoY)
+        <ul>
+          <li>Em dólar: US$ 11,7B, 10% abaixo do consenso</li>
+          <li>Sem o lag asiático, EBITDA estaria próximo de US$ 13B</li>
+        </ul>
+      </li>
+      <li><strong>Resultado financeiro +R$ 7,9B</strong> — praticamente todo cambial não-caixa.</li>
+      <li><strong>Lucro líquido recorrente R$ 23,8B</strong> (-7,2% t/t, +0,9% YoY) — contábil inflado por ganho cambial + reversão de impairment.</li>
+    </ul>
+    <div class="chart-wrapper tall"><canvas id="chart-cons-ebitda"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h2>Capital de giro e endividamento</h2>
+    <ul class="bullets">
+      <li><strong>Capital de giro consumiu -R$ 6,9B</strong>
+        <ul>
+          <li>Estoques -R$ 4,1B (exportações em trânsito)</li>
+          <li>Contas a receber -R$ 1,3B (R$ 741M de subvenção a receber)</li>
+          <li>Fornecedores -R$ 1,5B</li>
+          <li>Efeitos de estoque e subvenção devem reverter no próximo trimestre</li>
+        </ul>
+      </li>
+      <li><strong>Dívida bruta US$ 71,2B</strong>
+        <ul>
+          <li>Dentro do limite previsto no plano de negócios</li>
+          <li>Projeção: fecha 2026 em US$ 67B e vai para US$ 65B entre 2027 e 2030</li>
+          <li>61% da dívida é arrendamento (FPSOs, sondas, navios), vinculada a ativos produtivos</li>
+        </ul>
+      </li>
+    </ul>
+    <div class="chart-wrapper"><canvas id="chart-divida"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h2>Geração de caixa e dividendos</h2>
+    <ul class="bullets">
+      <li><strong>FCO R$ 44,0B</strong> (-20% t/t) — excluindo efeito do capital de giro, seria em linha com o 4T25.</li>
+      <li><strong>Dividendos R$ 0,70/ação (1,5% yield)</strong>
+        <ul>
+          <li>25% abaixo do consenso</li>
+          <li>Extraordinários praticamente descartados em 2026</li>
+          <li>Caixa mínimo US$ 6B; range operacional US$ 8-10B; hoje em US$ 9,1B</li>
+          <li>Excesso de caixa vai para antecipar investimentos ou abater dívida</li>
+        </ul>
+      </li>
+      <li>Política de 45% do FCL mantida.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>CAPEX por segmento</h2>
+    <div class="chart-wrapper"><canvas id="chart-capex"></canvas></div>
+  </div>
+</div>
+
+<!-- BRASKEM -->
+<div class="tab-panel" id="braskem">
+  <div class="card">
+    <h2>Braskem</h2>
+    <ul class="bullets">
+      <li><strong>IG4 substitui Novonor</strong> como sócia (representa bancos credores); Petrobras mantém 47% das ações com voto.</li>
+      <li>Closing esperado em jun-ago/2026.</li>
+      <li>Petrobras assume <strong>postura ativa após 10 anos passiva</strong> — sinergias com refino (naphtha) e gás natural (etano).</li>
+      <li><strong>Sem intenção de consolidar dívida</strong>; mantém minoritário.</li>
+      <li>Spreads petroquímicos melhoraram desde março (guerra OM tirou ~25% da oferta global do Oriente Médio) — janela favorável.</li>
+      <li>IDESA México: Magda descarta perda de controle ("fase de desinvestimento acabou").</li>
+    </ul>
+  </div>
+</div>
+
+<!-- GUIDANCE -->
+<div class="tab-panel" id="guidance">
+  <div class="card">
+    <h2>Guidance 2026 vs Realizado 1T26</h2>
+    <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">Pace trimestral de referência: ~25% do guidance anual</p>
+    <div class="table-wrapper">
+      <table class="dt">
+        <thead>
+          <tr><th>Métrica</th><th>Realizado 1T26</th><th>Guidance 2026</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Produção de óleo</td><td class="num">2,58 MMbpd</td><td>2,5 MMbpd ±4% (2,40-2,60)</td><td><span class="status acima">No topo; abr 2,73</span></td></tr>
+          <tr><td>Investimento Caixa</td><td class="num">US$ 4,5B</td><td>US$ 16,9B</td><td><span class="status linha">26,6% — em linha</span></td></tr>
+          <tr><td>Gastos Operacionais</td><td class="num">US$ 5,6B</td><td>US$ 20,2B</td><td><span class="status abaixo">27,7% — ligeiramente acima</span></td></tr>
+          <tr><td>Fluxo de Arrendamento</td><td class="num">US$ 2,4B</td><td>US$ 10,0B</td><td><span class="status linha">24,0% — em linha</span></td></tr>
+          <tr><td>Dívida bruta</td><td class="num">US$ 71,2B</td><td>US$ 67B fim 2026 (US$ 65B em 2030)</td><td><span class="status abaixo">Acima — precisa cair US$ 4B</span></td></tr>
+          <tr><td>Caixa operacional</td><td class="num">US$ 9,1B</td><td>Range US$ 8-10B (mín. US$ 6B)</td><td><span class="status linha">Dentro do range</span></td></tr>
+          <tr><td>Brent de equilíbrio</td><td class="num">–</td><td>US$ 59/bbl em 2026; US$ 48-50/bbl em 2030</td><td><span class="status acima">Brent atual ~US$ 85 → folga</span></td></tr>
+          <tr><td>Política de dividendos</td><td class="num">R$ 9,0B (1,5%)</td><td>45% do FCO – aquisições</td><td><span class="status linha">Mantida; extra 2026 descartado</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SELL-SIDE -->
+<div class="tab-panel" id="sellside">
+  <div class="card">
+    <h2>Visão Sell-Side</h2>
+    <div class="table-wrapper">
+      <table class="dt">
+        <thead>
+          <tr><th></th><th>BTG Pactual</th><th>JP Morgan</th><th>UBS</th><th>Bradesco BBI</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Rating / PT (USD/ADR)</strong></td><td>BUY · US$ 25</td><td>OW · US$ 24</td><td>BUY (CBE) · US$ 22</td><td>NEUTRAL · US$ 19</td></tr>
+          <tr><td><strong>Visão central</strong></td><td>Looking Through the Noise; Thesis Remains on Track</td><td>Timing Distortions Drive EBITDA Miss; Buy on Weakness</td><td>A miss does not mean a change to the thesis</td><td>Sharp EBITDA and DPS Miss on Inventory Transit and Pricing Lag to Be Reversed Next Quarter</td></tr>
+          <tr><td><strong>Resultado geral</strong></td><td>Miss explicado por lag e WK; tese intacta; 2T26 deve normalizar</td><td>Inventário refino + lag upstream temporários; core thesis intacta</td><td>Miss menor que outros sell-sides; WK e FX temporários</td><td>2T26 forte esperado, mas tese de neutralidade mantida</td></tr>
+          <tr><td><strong>EBITDA esperado / A/E</strong></td><td>12.998 <span class="status down">-10%</span></td><td>12.898 <span class="status down">-9%</span></td><td>12.334 <span class="status down">-5%</span></td><td>13.689 <span class="status down">-14%</span></td></tr>
+          <tr><td><strong>LL esperado / A/E</strong></td><td>5.265 <span class="status up">+18%</span></td><td>–</td><td>6.191 <span class="status neutral">0%</span></td><td>6.567 <span class="status down">-5%</span></td></tr>
+          <tr><td><strong>DY 2026E</strong></td><td>8,8%</td><td>n/d</td><td>11,6%</td><td>11,3%</td></tr>
+          <tr><td><strong>Expectativa 2T26</strong></td><td>Recuperação plena + monetização das 80 mbpd + subvenção em caixa</td><td>EBITDA acima por captura do Brent + reversão do efeito de estoque no RTC</td><td>EBITDA forte; DY trimestral 2-2,5%</td><td>"Very strong" — preços materializando + subsídios em caixa</td></tr>
+          <tr><td><strong>Principal risco</strong></td><td>Cessar-fogo OM; eleição out/26</td><td>Volatilidade; reversão do efeito favorável de estoque no RTC</td><td>Diluição do realizado se Brent retrair antes do 2T26</td><td>Volatilidade pré-eleição + cessar-fogo OM como downside ao Brent</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px; color:var(--gray); margin-top:12px;"><em>Comparação contra EBITDA Ajustado sem eventos exclusivos reportado de US$ 11.737M (R$ 61,7B).</em></p>
+  </div>
+
+  <div class="card">
+    <h2>Leitura consolidada</h2>
+    <ul class="bullets">
+      <li>3 de 4 casas com rating de compra; Bradesco é o único cético.</li>
+      <li>Mediana PT ~US$ 23/ADR vs preço atual ~US$ 20,75 → upside médio ~11%.</li>
+      <li>DY 2026E entre 8,8% (BTG mais conservador) e 11,6% (UBS) — Petrobras entre os maiores yields globais de O&G.</li>
+      <li>Convergência total: 2T26 vai ser materialmente melhor.</li>
+      <li>Divergência principal: Brent LP nas premissas (US$ 70 BBI vs US$ 82 BTG vs US$ 86 UBS).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- VALUATION -->
+<div class="tab-panel" id="valuation">
+  <div class="card">
+    <h2>Simulador interativo (modelo M89)</h2>
+    <p style="font-size:12px; color:var(--gray); margin-bottom:8px;">Mexa os sliders para ver o impacto no preço justo. Cross-check via múltiplo EV/EBITDA.</p>
+
+    <div class="slider-group">
+      <div class="slider-control">
+        <label>Brent (US$/bbl)</label>
+        <div class="slider-value" id="brent-val">80</div>
+        <input type="range" id="brent-slider" min="40" max="140" step="1" value="80">
+        <div class="slider-range-label"><span>40</span><span>140</span></div>
+      </div>
+      <div class="slider-control">
+        <label>USDBRL</label>
+        <div class="slider-value" id="fx-val">5,40</div>
+        <input type="range" id="fx-slider" min="4.0" max="7.0" step="0.05" value="5.40">
+        <div class="slider-range-label"><span>4,00</span><span>7,00</span></div>
+      </div>
+      <div class="slider-control">
+        <label>Produção (mbpd)</label>
+        <div class="slider-value" id="prod-val">3.200</div>
+        <input type="range" id="prod-slider" min="2500" max="3800" step="50" value="3200">
+        <div class="slider-range-label"><span>2.500</span><span>3.800</span></div>
+      </div>
+      <div class="slider-control">
+        <label>Margem EBITDA</label>
+        <div class="slider-value" id="margin-val">46%</div>
+        <input type="range" id="margin-slider" min="30" max="60" step="1" value="46">
+        <div class="slider-range-label"><span>30%</span><span>60%</span></div>
+      </div>
+      <div class="slider-control">
+        <label>Múltiplo EV/EBITDA</label>
+        <div class="slider-value" id="mult-val">4,0x</div>
+        <input type="range" id="mult-slider" min="2.0" max="7.0" step="0.1" value="4.0">
+        <div class="slider-range-label"><span>2,0x</span><span>7,0x</span></div>
+      </div>
+      <div class="slider-control">
+        <label>CAPEX (US$ B)</label>
+        <div class="slider-value" id="capex-val">20</div>
+        <input type="range" id="capex-slider" min="10" max="30" step="0.5" value="20">
+        <div class="slider-range-label"><span>10</span><span>30</span></div>
+      </div>
+    </div>
+
+    <div class="metric-grid" style="margin-top: 20px;">
+      <div class="metric-card"><div class="label">Receita Estimada</div><div class="value" id="out-revenue">R$ 0</div></div>
+      <div class="metric-card"><div class="label">EBITDA Estimado</div><div class="value" id="out-ebitda">R$ 0</div></div>
+      <div class="metric-card"><div class="label">EV Implícito</div><div class="value" id="out-ev">R$ 0</div></div>
+      <div class="metric-card"><div class="label">Equity Value</div><div class="value" id="out-equity">R$ 0</div></div>
+      <div class="metric-card highlight"><div class="label">Preço Justo (R$/ação)</div><div class="value" id="out-fair">R$ 0</div></div>
+      <div class="metric-card highlight"><div class="label">Upside vs R$ 44,78</div><div class="value" id="out-upside">0%</div></div>
+      <div class="metric-card"><div class="label">FCF (CFO - CAPEX)</div><div class="value" id="out-fcf">R$ 0</div></div>
+      <div class="metric-card"><div class="label">Dvd Yield (100%)</div><div class="value" id="out-dy">0%</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>DCF — Resultado base</h2>
+    <div class="metric-grid">
+      <div class="metric-card highlight"><div class="label">Preço Justo DCF</div><div class="value">R$ 50,03</div></div>
+      <div class="metric-card"><div class="label">PETR4 ref.</div><div class="value">R$ 44,78</div></div>
+      <div class="metric-card"><div class="label">Upside DCF</div><div class="value" style="color:var(--green)">+11,7%</div></div>
+      <div class="metric-card"><div class="label">WACC</div><div class="value">12,57%</div></div>
+      <div class="metric-card"><div class="label">Perpetuidade</div><div class="value">2,0%</div></div>
+      <div class="metric-card"><div class="label">Ke nominal R$</div><div class="value">14,36%</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sensibilidade — Brent × USDBRL (Equity R$/ação)</h2>
+    <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">Múltiplo fixo em 4,0x · Produção 3.200 mbpd · Margem EBITDA 46% · CAPEX US$ 20B</p>
+    <div class="table-wrapper">
+      <table class="dt sens-table" id="sens-brent-fx"></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sensibilidade — Brent × Múltiplo EV/EBITDA (Equity R$/ação)</h2>
+    <p style="font-size:12px; color:var(--gray); margin-bottom:12px;">USDBRL fixo em 5,40 · Produção 3.200 mbpd · Margem EBITDA 46% · CAPEX US$ 20B</p>
+    <div class="table-wrapper">
+      <table class="dt sens-table" id="sens-brent-mult"></table>
+    </div>
+  </div>
+</div>
+
+<!-- TESE -->
+<div class="tab-panel" id="tese">
+  <div class="card">
+    <h2>Drivers da tese</h2>
+    <h3>Catalisadores</h3>
+    <ul class="bullets">
+      <li><strong>Resultado 2T26</strong> (esperado para agosto): EBITDA esperado em US$ 14-15B pela captura plena do Brent + 80 mbpd em trânsito monetizados + subvenções em caixa.</li>
+      <li><strong>DPS 2T26</strong> consenso ~US$ 2,5-3,0B (vs US$ 1,84B no 1T26).</li>
+      <li>SEAP I/II já no CAPEX base sinaliza Companhia acelerando, não distribuindo extra. Búzios 12 e Albacora próximos candidatos.</li>
+      <li>Margem Equatorial: broca a 1.000m do alvo Morpho — próximo evento exploratório.</li>
+      <li>P-80/P-82/P-83 chegando em 2027 — produção própria pode bater 3 MMbpd.</li>
+      <li>Eleição out/26: continuidade da governança pode comprimir Ke em 200 bps (+US$ 5/ADR no PT BTG).</li>
+    </ul>
+    <h3>Riscos</h3>
+    <ul class="bullets">
+      <li><strong>Cessar-fogo no OM:</strong> Brent retrai → lag positivo do 2T26 vira lag negativo no 3T26.</li>
+      <li><strong>Eleição out/26:</strong> troca política pode reintroduzir intervenção em preços ou redirecionamento de CAPEX.</li>
+      <li>Lifting cost pré-sal em tendência ascendente desde 2024.</li>
+      <li>Braskem: exposição maior a setor cíclico via gestão ativa.</li>
+      <li>ROCE E&P sob pressão por base de capital crescente.</li>
+    </ul>
+    <h3>Posição do fundo</h3>
+    <div class="tese">
+      Fundo comprado em Petrobras (PETR4). Tese central: scarcity value de NOC LatAm com governança razoável + produção em rampa + break-even Brent estrutural baixo (US$ 59 em 2026 → US$ 48-50 em 2030) + retorno via dividendos atraentes mesmo em Brent moderado. <strong>Lag de captura do 1T26 é mecânico e reversível — não altera tese.</strong> Monitorar lifting cost pré-sal, ROCE E&P e Braskem como riscos secundários.
+    </div>
+  </div>
+</div>
+
+<!-- CALENDARIO -->
+<div class="tab-panel" id="calendario">
+  <div class="card">
+    <h2>Calendário de eventos e triggers</h2>
+    <div class="table-wrapper">
+      <table class="dt">
+        <thead>
+          <tr><th>Quando</th><th>Evento</th><th>Relevância</th><th>Impacto esperado</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Jun/26</td><td>Pagamento DPS 1T26 (1ª parcela)</td><td><span class="status linha">Médio</span></td><td>Caixa para acionistas</td></tr>
+          <tr><td>Jun-Ago/26</td><td>Closing acordo Braskem (IG4 entra como sócia)</td><td><span class="status linha">Médio</span></td><td>Petrobras assume gestão ativa</td></tr>
+          <tr><td>Ago/26</td><td><strong>Resultado 2T26</strong></td><td><span class="status up">Alto</span></td><td>EBITDA esperado US$ 14-15B; DPS US$ 2,5-3,0B</td></tr>
+          <tr><td>Ago/26</td><td>Reajuste contratado de gás natural</td><td><span class="status linha">Médio</span></td><td>Petrobras decide se aplica integral ou alarga prazo</td></tr>
+          <tr><td>2S/26</td><td>Importação de diesel volta (safra)</td><td><span class="status linha">Médio</span></td><td>Subvenção R$ 1,20/l garante operação sem prejuízo</td></tr>
+          <tr><td>2S/26</td><td>Próximos furos da Margem Equatorial</td><td><span class="status up">Alto</span></td><td>Possível descoberta no Morpho</td></tr>
+          <tr><td>Out/26</td><td><strong>Eleição presidencial Brasil</strong></td><td><span class="status up">Alto</span></td><td>Cenário continuidade: Ke -200 bps (+US$ 5/ADR no PT BTG)</td></tr>
+          <tr><td>Nov/26</td><td>Possível anúncio do novo PN 2027-31</td><td><span class="status up">Alto</span></td><td>Pode mirar 100% autossuficiência diesel + gasolina</td></tr>
+          <tr><td>1T27</td><td>P-80 (Búzios 9) primeiro óleo</td><td><span class="status linha">Médio</span></td><td>+225 mbpd capacidade</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Triggers macro a monitorar</h2>
+    <ul class="bullets">
+      <li><strong>Cessar-fogo Oriente Médio:</strong> downside imediato para Brent. Lag positivo do 2T26 vira lag negativo no 3T26.</li>
+      <li><strong>USDBRL:</strong> apreciação adicional do real comprime receita operacional mas inflação cambial positiva no LL contábil.</li>
+      <li><strong>Preço do etanol no Brasil:</strong> influencia capacidade da Petrobras de subir gasolina sem perder market share.</li>
+      <li><strong>Spreads petroquímicos globais:</strong> impacto direto na Braskem; relevante apenas para o equity 47%.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- RELATÓRIO COMPLETO -->
+<div class="tab-panel" id="relatorio">
+  <div class="card">
+    <h2>Relatório Completo (visão impressão)</h2>
+    <p style="font-size:12px; color:var(--gray); margin-bottom: 16px;">Todo o conteúdo em uma única página corrida. Use o botão "Imprimir / PDF" no topo para gerar o documento.</p>
+
+    <h2 style="margin-top: 24px;">1. Destaques</h2>
+    <ul class="bullets">
+      <li>EBITDA 10% abaixo do consenso, mas miss mecânico (lag asiático + 80 mil bpd em trânsito) e reversível no 2T26.</li>
+      <li>Produção de óleo em 2,58 MMbpd no 1T26 e 2,73 MMbpd em abril, acima do guidance 2026 (2,5 ±4%).</li>
+      <li>Subvenções de R$ 1,52/l blindam o diesel; gasolina anunciada após o call mas paridade ainda não fecha.</li>
+      <li>DPS 25% abaixo do consenso e extraordinário explicitamente descartado em 2026.</li>
+      <li>Caixa em excesso vai para investimentos (SEAP I/II já saiu do CAPEX target) e dívida, não distribuição.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">2. Macro</h2>
+    <h3>Guerra OM</h3>
+    <ul class="bullets">
+      <li>Conflito estourou em 28/fev; Brent saiu de ~US$ 70 para ~US$ 100 em março.</li>
+      <li>Brent calendário 1T26 fechou em US$ 80,61, mas Petrobras capturou preços de jan/fev.</li>
+      <li>81 mil bpd em trânsito não foram reconhecidos — viram receita no 2T26.</li>
+    </ul>
+    <h3>Subvenção do diesel</h3>
+    <ul class="bullets">
+      <li>3 ondas: 12/mar (R$ 0,32 + PIS/COFINS zerado), 12/abr (R$ 0,80 doméstico + R$ 1,20 importado), 13/mai (R$ 0,32 renovado).</li>
+      <li>R$ 672M de receita no 1T26; R$ 741M em contas a receber (caixa ainda zerado).</li>
+      <li>Aumento de R$ 0,02/l na bomba significou +46% para a Petrobras.</li>
+    </ul>
+    <h3>Subvenção da gasolina</h3>
+    <ul class="bullets">
+      <li>Anunciada um dia após o call. Até R$ 0,89/l permitido; inicialmente R$ 0,40-0,45/l.</li>
+      <li>Petrobras vendendo a R$ 2,57 vs paridade R$ 4,63 — gap reduz mas não fecha.</li>
+    </ul>
+    <h3>Câmbio</h3>
+    <ul class="bullets">
+      <li>USDBRL R$ 5,26 (-9,9% YoY) — comprime receita e eleva lifting cost em USD.</li>
+      <li>Ganho cambial não-caixa de R$ +12,3B sobre a dívida em dólar — infla LL contábil.</li>
+    </ul>
+    <h3>Novas geografias</h3>
+    <ul class="bullets">
+      <li>Margem Equatorial é prioridade #1; broca a 1.000m do Morpho.</li>
+      <li>SEAP I e II incorporado pelo Brent alto (240 mbpd óleo + 22 MMm³/d gás).</li>
+      <li>México: alvo é Golfo do México mexicano em águas ultraprofundas; ainda longe.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">3. E&P</h2>
+    <ul class="bullets">
+      <li>Produção 3,23 MMboed (+3,7% t/t, +16,1% YoY) — recorde. Pré-sal 2,18 MMbpd.</li>
+      <li>Abril em 2,73 MMbpd, acima do guidance 2026 (2,5 ±4%).</li>
+      <li>Alavancas: ramp-up P-78 e FPSO Alexandre de Gusmão; 10 novos poços (6 pré-sal, 4 pós-sal).</li>
+      <li>Almirante Tamandaré ampliada de 225 para 270 mbpd; mais 4 plataformas seguem o mesmo movimento.</li>
+      <li>Receita E&P R$ 84,0B (+8,8% t/t) com Brent +27% — captura aquém pelo lag asiático.</li>
+      <li>Lifting cost Brasil US$ 6,76/boe (+5,6% t/t); pré-sal US$ 4,67 (+11% t/t) — atenção.</li>
+      <li>P-79 (Búzios 8) entrou 3 meses antecipada; campo todo em 1,08 MMbpd, mira 1,5 MMbpd.</li>
+      <li>CAPEX US$ 4,5B (87% do total); subsea +75% YoY.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">4. Refino</h2>
+    <ul class="bullets">
+      <li>Produção de derivados 1.816 Mbpd (+6,7% t/t) — recorde.</li>
+      <li>FUT 95% (97,4% em março, >100% em abr/mai) — maior nível desde dez/2014.</li>
+      <li>Diesel S10 recorde mensal em março: 512 mbpd.</li>
+      <li>Lucro bruto R$ 23,8B reportado é enganoso — quase metade é ganho contábil de estoque.</li>
+      <li>Lucro bruto ajustado R$ 16,9B no 1T26 vs R$ 15,3B no 4T25 (+10% t/t) — leitura real.</li>
+      <li>Próximo PN pode mirar 100% autossuficiência diesel + gasolina até 2031.</li>
+      <li>Importações -32% t/t; exportações: 62% para China, 15% Índia.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">5. Gás e Energia</h2>
+    <ul class="bullets">
+      <li>LRCAP 2026: 9 UTEs, R$ 44B em receita fixa (~R$ 4,5B/ano de 2026-2031).</li>
+      <li>Substituição estrutural de Bolívia/GNL por gás nacional.</li>
+      <li>UFN-III retomada (operação 2029); reversão impairment R$ +2,2B no RTC.</li>
+      <li>EBITDA R$ 1,75B (-24% t/t, +234% YoY) — 3% da receita consolidada.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">6. Consolidado</h2>
+    <ul class="bullets">
+      <li>EBITDA Aj. R$ 61,7B (+4,5% t/t, -1,0% YoY); US$ 11,7B, 10% abaixo do consenso.</li>
+      <li>LL recorrente R$ 23,8B; contábil R$ 32,7B inflado por câmbio.</li>
+      <li>WK consumiu -R$ 6,9B (estoques + subvenção a receber) — reverte no 2T26.</li>
+      <li>Dívida bruta US$ 71,2B; trajetória US$ 67B em 2026, US$ 65B em 2030.</li>
+      <li>FCO R$ 44,0B; FCL R$ 20,1B; DPS R$ 0,70/ação (1,5% yield, -25% vs cons).</li>
+      <li>Extraordinário 2026 descartado; excesso de caixa vai para investimento e dívida.</li>
+      <li>CAPEX US$ 5,1B (87% E&P).</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">7. Braskem</h2>
+    <ul class="bullets">
+      <li>IG4 substitui Novonor como sócia; Petrobras mantém 47% com voto.</li>
+      <li>Postura ativa após 10 anos passiva; sinergias com refino (naphtha) e gás (etano).</li>
+      <li>Sem intenção de consolidar dívida.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">8. Valuation M89</h2>
+    <ul class="bullets">
+      <li>DCF aponta preço justo R$ 50,03 vs PETR4 R$ 44,78 (upside +11,7%).</li>
+      <li>WACC 12,57%; crescimento na perpetuidade 2%; múltiplo cross-check 4,0x.</li>
+      <li>Sensibilidade Brent: a US$ 80 (calendário 1T26), equity em ~R$ 89/ação via cross-check de múltiplo.</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">9. Tese</h2>
+    <div class="tese">
+      Fundo comprado em PETR4. Tese central: scarcity value de NOC LatAm + produção em rampa + break-even Brent estrutural baixo + dividendos atraentes mesmo em Brent moderado. Lag de captura do 1T26 é mecânico e reversível. Monitorar lifting cost pré-sal, ROCE E&P e Braskem como riscos secundários.
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  M89 Research · Documento interno · Não constitui recomendação formal de compra/venda · Análise proprietária baseada em fontes públicas
+</div>
+
+<script>
+const tabs = document.querySelectorAll('.tab-btn');
+const panels = document.querySelectorAll('.tab-panel');
+const initializedCharts = {};
+
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    tabs.forEach(b => b.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(tab).classList.add('active');
+    initCharts(tab);
+    if (tab === 'valuation') initValuation();
+  });
+});
+
+const NAVY = '#1A2744';
+const BLUE = '#2C7BE5';
+const GREEN = '#28A745';
+const RED = '#DC3545';
+const ORANGE = '#E67E22';
+const GRAY = '#6C757D';
+
+Chart.defaults.font.family = "'Segoe UI', system-ui, -apple-system, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#374151';
+
+const periods = ['1T22','2T22','3T22','4T22','1T23','2T23','3T23','4T23','1T24','2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'];
+
+function initCharts(tab) {
+  if (initializedCharts[tab]) return;
+  initializedCharts[tab] = true;
+
+  if (tab === 'ep') {
+    new Chart(document.getElementById('chart-ep-ebitda'), {
+      data: {
+        labels: periods,
+        datasets: [
+          { type: 'bar', label: 'EBITDA E&P (R$ B)', data: [73,79,73,58,57,49,60,58,55,52,58,37,58,51,60,51,54], backgroundColor: 'rgba(26,39,68,0.7)', borderColor: NAVY, borderWidth: 1, yAxisID: 'y', order: 2 },
+          { type: 'line', label: 'Brent (US$/bbl)', data: [101,114,101,89,81,78,87,84,83,85,80,75,76,68,69,64,81], borderColor: BLUE, backgroundColor: BLUE, yAxisID: 'y1', tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: BLUE, order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { position: 'left', title: { display: true, text: 'EBITDA (R$ B)' }, beginAtZero: true, suggestedMax: 100 },
+          y1: { position: 'right', title: { display: true, text: 'Brent (US$/bbl)' }, grid: { drawOnChartArea: false }, suggestedMin: 50, suggestedMax: 130 }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('chart-ep-prod'), {
+      type: 'line',
+      data: {
+        labels: periods,
+        datasets: [{ label: 'Produção (Mbpd)', data: [2270,2160,2160,2170,2180,2150,2360,2400,2200,2190,2180,2140,2310,2360,2570,2540,2620], borderColor: GREEN, backgroundColor: 'rgba(40,167,69,0.1)', fill: true, tension: 0.3, borderWidth: 3, pointRadius: 3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 2000, max: 2800, title: { display: true, text: 'Mbpd' } } } }
+    });
+
+    new Chart(document.getElementById('chart-lifting'), {
+      type: 'line',
+      data: {
+        labels: periods,
+        datasets: [
+          { label: 'Lifting cost total', data: [5.1,5.1,5.4,5.7,5.4,5.5,5.7,5.5,5.4,5.6,5.5,6.0,6.8,6.4,6.5,6.4,6.8], borderColor: NAVY, tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+          { label: 'Pré-Sal', data: [3.4,3.5,3.7,4.1,3.6,3.7,3.8,3.6,3.7,3.7,3.8,4.0,4.5,4.2,4.3,4.2,4.7], borderColor: GREEN, tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+          { label: 'Pós-Sal P/UP', data: [10,10,13,15,11,12,14,12,12,13,13,14,15,16,17,18,17], borderColor: ORANGE, tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+          { label: 'Terra/águas rasas', data: [16,16,16,17,15,15,16,16,16,16,16,17,17,17,17,17,19], borderColor: GRAY, tension: 0.3, borderWidth: 2.5, pointRadius: 3 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { title: { display: true, text: 'US$/boe' } } } }
+    });
+  }
+
+  if (tab === 'rtc') {
+    new Chart(document.getElementById('chart-rtc-ebitda'), {
+      data: {
+        labels: periods,
+        datasets: [
+          { type: 'bar', label: 'EBITDA RTC (R$ B)', data: [16,23,15,15,12,8,10,10,10,7,6,9,6,6,7,10,20], backgroundColor: 'rgba(26,39,68,0.7)', borderColor: NAVY, borderWidth: 1, yAxisID: 'y', order: 2 },
+          { type: 'line', label: 'Preço derivados (R$/bbl)', data: [544,666,693,621,569,475,464,517,476,476,489,486,506,470,461,457,456], borderColor: BLUE, backgroundColor: BLUE, yAxisID: 'y1', tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: BLUE, order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { position: 'left', title: { display: true, text: 'EBITDA (R$ B)' }, beginAtZero: true, suggestedMax: 28 },
+          y1: { position: 'right', title: { display: true, text: 'Preço derivados (R$/bbl)' }, grid: { drawOnChartArea: false }, suggestedMin: 400, suggestedMax: 750 }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('chart-rtc-custo'), {
+      data: {
+        labels: periods,
+        datasets: [
+          { type: 'line', label: 'Custo do refino (US$/bbl)', data: [1.8,1.9,2.2,2.0,2.0,2.0,2.2,2.4,2.5,2.6,2.6,2.8,2.8,2.9,3.0,3.3,3.3], borderColor: NAVY, tension: 0.3, yAxisID: 'y', borderWidth: 2.5, pointRadius: 3 },
+          { type: 'line', label: 'Margem bruta (%)', data: [13,17,12,11,11,7,7,9,8,8,9,9,6,7,8,11,22], borderColor: GREEN, tension: 0.3, yAxisID: 'y1', borderWidth: 2.5, pointRadius: 3 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { position: 'left', title: { display: true, text: 'US$/bbl' } },
+          y1: { position: 'right', title: { display: true, text: '%' }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  }
+
+  if (tab === 'ge') {
+    new Chart(document.getElementById('chart-ge-ebitda'), {
+      data: {
+        labels: periods,
+        datasets: [
+          { type: 'bar', label: 'EBITDA G&E (R$ B)', data: [-2,3,5,3,4,2,4,4,2,2,2,2,1,1,1,2,2], backgroundColor: 'rgba(26,39,68,0.7)', borderColor: NAVY, borderWidth: 1, yAxisID: 'y', order: 2 },
+          { type: 'line', label: 'Margem EBITDA (%)', data: [-9.3,17.5,21.7,15.7,25.9,18.0,28.0,25.0,20.1,16.7,12.9,14.6,4.8,10.9,9.0,17.8,15.1], borderColor: BLUE, backgroundColor: BLUE, yAxisID: 'y1', tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: BLUE, order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { position: 'left', title: { display: true, text: 'EBITDA (R$ B)' }, suggestedMin: -3, suggestedMax: 7 },
+          y1: { position: 'right', title: { display: true, text: 'Margem (%)' }, grid: { drawOnChartArea: false }, suggestedMin: -15, suggestedMax: 35 }
+        }
+      }
+    });
+  }
+
+  if (tab === 'consolidado') {
+    new Chart(document.getElementById('chart-cons-ebitda'), {
+      data: {
+        labels: periods,
+        datasets: [
+          { type: 'bar', label: 'EBITDA Ajustado (R$ B)', data: [82,113,92,75,75,58,65,58,61,50,63,31,62,51,66,51,63], backgroundColor: 'rgba(26,39,68,0.7)', borderColor: NAVY, borderWidth: 1, yAxisID: 'y', order: 2 },
+          { type: 'line', label: 'Margem EBITDA (%)', data: [57.9,66.3,53.9,47.5,54.2,51.0,51.7,42.9,51.5,40.8,48.6,25.3,50.4,43.2,51.6,39.7,50.8], borderColor: GREEN, backgroundColor: GREEN, yAxisID: 'y1', tension: 0.3, borderWidth: 3, pointRadius: 4, pointBackgroundColor: GREEN, order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { position: 'left', title: { display: true, text: 'EBITDA (R$ B)' }, beginAtZero: true, suggestedMax: 130 },
+          y1: { position: 'right', title: { display: true, text: 'Margem (%)' }, grid: { drawOnChartArea: false }, suggestedMin: 20, suggestedMax: 75 }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('chart-divida'), {
+      type: 'bar',
+      data: {
+        labels: ['2025', '1T26', '2026E', '2027-30E'],
+        datasets: [
+          { label: 'Financiamentos', data: [26.4, 27.5, 25.0, 24.0], backgroundColor: BLUE },
+          { label: 'Arrendamentos', data: [43.4, 43.7, 42.0, 41.0], backgroundColor: GREEN }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Dívida Bruta (US$ B)' } },
+        scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'US$ B' } } }
+      }
+    });
+
+    new Chart(document.getElementById('chart-capex'), {
+      type: 'bar',
+      data: {
+        labels: periods,
+        datasets: [
+          { label: 'CAPEX Total (US$ B)', data: [1.8,2.2,2.1,2.9,2.5,3.1,3.4,3.6,3.0,3.4,4.4,5.7,4.1,4.4,5.5,6.3,5.1], backgroundColor: NAVY }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { title: { display: true, text: 'US$ B' } } } }
+    });
+  }
+}
+
+// VALUATION CALCULATOR
+const NUM_SHARES = 12888.732761; // milhões
+const NET_DEBT = -94867; // R$ M (negativo = dívida líquida positiva no modelo)
+const PETR4_REF = 44.78;
+const DERIV_EQUIV = 244.80; // 6.12 barris por boed
+const CFO_FACTOR = 0.80; // estimativa simples FCO/EBITDA
+
+function calcValuation(brent, fx, prod, marginPct, mult, capex) {
+  // Receita estimada: produção x equivalência derivados x 365 x FX / 1000
+  const ebitda = prod * 365 * brent * fx * marginPct / 100 / 1000;
+  const revenue = ebitda / (marginPct / 100);
+  const ev = ebitda * mult;
+  const equityValue = ev + NET_DEBT;
+  const fairPrice = equityValue / NUM_SHARES;
+  const upside = (fairPrice / PETR4_REF - 1) * 100;
+  const cfo = ebitda * CFO_FACTOR;
+  const fcf = cfo - capex * 1000 * fx / 1000;
+  const dvdYield = fcf > 0 ? (fcf / (PETR4_REF * NUM_SHARES) * 100) : 0;
+  return { revenue, ebitda, ev, equityValue, fairPrice, upside, cfo, fcf, dvdYield };
+}
+
+function fmtBRL(v) {
+  if (Math.abs(v) >= 1000) return 'R$ ' + (v/1000).toFixed(1) + ' B';
+  return 'R$ ' + v.toFixed(0) + ' M';
+}
+
+function updateValuation() {
+  const brent = parseFloat(document.getElementById('brent-slider').value);
+  const fx = parseFloat(document.getElementById('fx-slider').value);
+  const prod = parseFloat(document.getElementById('prod-slider').value);
+  const margin = parseFloat(document.getElementById('margin-slider').value);
+  const mult = parseFloat(document.getElementById('mult-slider').value);
+  const capex = parseFloat(document.getElementById('capex-slider').value);
+
+  document.getElementById('brent-val').textContent = brent;
+  document.getElementById('fx-val').textContent = fx.toFixed(2).replace('.', ',');
+  document.getElementById('prod-val').textContent = prod.toLocaleString('pt-BR');
+  document.getElementById('margin-val').textContent = margin + '%';
+  document.getElementById('mult-val').textContent = mult.toFixed(1).replace('.', ',') + 'x';
+  document.getElementById('capex-val').textContent = capex.toFixed(1).replace('.', ',');
+
+  const r = calcValuation(brent, fx, prod, margin, mult, capex);
+  document.getElementById('out-revenue').textContent = fmtBRL(r.revenue);
+  document.getElementById('out-ebitda').textContent = fmtBRL(r.ebitda);
+  document.getElementById('out-ev').textContent = fmtBRL(r.ev);
+  document.getElementById('out-equity').textContent = fmtBRL(r.equityValue);
+  document.getElementById('out-fair').textContent = 'R$ ' + r.fairPrice.toFixed(2).replace('.', ',');
+  const upsideEl = document.getElementById('out-upside');
+  upsideEl.textContent = (r.upside >= 0 ? '+' : '') + r.upside.toFixed(1).replace('.', ',') + '%';
+  upsideEl.style.color = r.upside >= 0 ? GREEN : RED;
+  document.getElementById('out-fcf').textContent = fmtBRL(r.fcf);
+  document.getElementById('out-dy').textContent = r.dvdYield.toFixed(1).replace('.', ',') + '%';
+}
+
+function buildSensitivity() {
+  // Brent x USDBRL (fixa: prod=3200, margin=46, mult=4, capex=20)
+  const brents = [40, 50, 60, 70, 80, 90, 100, 110, 120];
+  const fxs = [4.5, 5.0, 5.4, 5.8, 6.2];
+  let html = '<thead><tr><th class="row-label">USDBRL ↓ / Brent →</th>';
+  brents.forEach(b => html += `<th>${b}</th>`);
+  html += '</tr></thead><tbody>';
+  fxs.forEach(fx => {
+    html += `<tr><td class="row-label">${fx.toFixed(2).replace('.', ',')}</td>`;
+    brents.forEach(b => {
+      const r = calcValuation(b, fx, 3200, 46, 4, 20);
+      const isBase = (b === 80 && fx === 5.4);
+      const color = r.upside >= 0 ? GREEN : RED;
+      const bg = isBase ? `background: #EEF4FF; font-weight: 700;` : '';
+      html += `<td class="num" style="color: ${color}; ${bg}">R$ ${r.fairPrice.toFixed(1).replace('.', ',')}<br><small>(${(r.upside>=0?'+':'')}${r.upside.toFixed(0)}%)</small></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('sens-brent-fx').innerHTML = html;
+
+  // Brent x Múltiplo (fixa: prod=3200, margin=46, fx=5.4, capex=20)
+  const mults = [3.0, 3.5, 4.0, 4.5, 5.0, 5.5];
+  html = '<thead><tr><th class="row-label">Múltiplo ↓ / Brent →</th>';
+  brents.forEach(b => html += `<th>${b}</th>`);
+  html += '</tr></thead><tbody>';
+  mults.forEach(m => {
+    html += `<tr><td class="row-label">${m.toFixed(1).replace('.', ',')}x</td>`;
+    brents.forEach(b => {
+      const r = calcValuation(b, 5.4, 3200, 46, m, 20);
+      const isBase = (b === 80 && m === 4.0);
+      const color = r.upside >= 0 ? GREEN : RED;
+      const bg = isBase ? `background: #EEF4FF; font-weight: 700;` : '';
+      html += `<td class="num" style="color: ${color}; ${bg}">R$ ${r.fairPrice.toFixed(1).replace('.', ',')}<br><small>(${(r.upside>=0?'+':'')}${r.upside.toFixed(0)}%)</small></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('sens-brent-mult').innerHTML = html;
+}
+
+let valuationInit = false;
+function initValuation() {
+  if (valuationInit) return;
+  valuationInit = true;
+  ['brent', 'fx', 'prod', 'margin', 'mult', 'capex'].forEach(id => {
+    document.getElementById(id + '-slider').addEventListener('input', updateValuation);
+  });
+  updateValuation();
+  buildSensitivity();
+}
+
+</script>
+
+</body>
+</html>
