@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M89 Research · MRV 1T26</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+<style>
+:root {
+  --navy: #1a2744;
+  --blue: #2c7be5;
+  --green: #28a745;
+  --red: #dc3545;
+  --orange: #e67e22;
+  --gray: #6c757d;
+  --bg: #f5f7fa;
+  --border: #e3e6ec;
+  --text: #2c3142;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+/* Back bar */
+.back-bar {
+  background: #1a2744;
+  padding: 10px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+.back-button {
+  display: inline-block;
+  color: white;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: background 0.15s;
+}
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+@media (max-width: 720px) {
+  .back-bar { padding: 8px 12px; }
+  .back-button { padding: 5px 12px; }
+}
+/* Top bar */
+.topbar {
+  background: white;
+  border-bottom: 2px solid var(--navy);
+  padding: 10px 24px;
+  position: sticky;
+  top: 40px;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.topbar .brand {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--navy);
+}
+.topbar .company {
+  font-size: 13px;
+  color: var(--gray);
+}
+/* Page header */
+.header {
+  background: var(--navy);
+  color: white;
+  padding: 24px;
+}
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.ticker-badge {
+  background: var(--blue);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.header h1 { font-size: 22px; font-weight: 600; }
+.header .meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+.header .price {
+  margin-left: auto;
+  text-align: right;
+}
+.header .price .val { font-size: 22px; font-weight: 700; }
+.header .price .lbl { font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 1px; }
+/* KPI strip */
+.kpis {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+}
+.kpis-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+.kpi {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-align: left;
+}
+.kpi .lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray);
+  font-weight: 600;
+}
+.kpi .val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-top: 2px;
+}
+.kpi .delta {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.delta.pos { color: var(--green); }
+.delta.neg { color: var(--red); }
+.delta.neu { color: var(--orange); }
+/* Tab bar */
+.tabs {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 90px;
+  z-index: 90;
+}
+.tabs-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+.tab {
+  padding: 12px 18px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.tab:hover { color: var(--navy); }
+.tab.active {
+  color: var(--navy);
+  border-bottom-color: var(--blue);
+}
+/* Content */
+.content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--blue);
+}
+.subsection-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 20px 0 10px 0;
+}
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.chart-container {
+  position: relative;
+  height: 280px;
+  margin-top: 8px;
+}
+.chart-container.tall { height: 360px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+th {
+  background: #f0f3f8;
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 600;
+  color: var(--navy);
+  border-bottom: 2px solid var(--blue);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+tr:nth-child(even) td { background: #fafbfd; }
+tr:hover td { background: #f0f3f8; }
+.bullet { margin-bottom: 6px; padding-left: 18px; position: relative; }
+.bullet:before {
+  content: "•";
+  color: var(--blue);
+  font-weight: bold;
+  position: absolute;
+  left: 4px;
+}
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.tag.green { background: rgba(40, 167, 69, 0.12); color: var(--green); }
+.tag.red { background: rgba(220, 53, 69, 0.12); color: var(--red); }
+.tag.orange { background: rgba(230, 126, 34, 0.12); color: var(--orange); }
+.tag.gray { background: rgba(108, 117, 125, 0.12); color: var(--gray); }
+.tag.blue { background: rgba(44, 123, 229, 0.12); color: var(--blue); }
+.status-icon { font-size: 14px; margin-right: 4px; }
+strong { color: var(--navy); }
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: var(--gray);
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+  background: white;
+}
+.sens-matrix td.base { background: rgba(44, 123, 229, 0.15) !important; font-weight: 700; }
+.sens-matrix td.green-cell { background: rgba(40, 167, 69, 0.10) !important; }
+.sens-matrix td.red-cell { background: rgba(220, 53, 69, 0.10) !important; }
+.callout {
+  background: #f0f7ff;
+  border-left: 4px solid var(--blue);
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 12px 0;
+  font-size: 12px;
+}
+.callout.warn {
+  background: #fff8f0;
+  border-left-color: var(--orange);
+}
+.callout.alert {
+  background: #fff4f5;
+  border-left-color: var(--red);
+}
+</style>
+</head>
+<body>
+
+<!-- BACK BAR -->
+<div class="back-bar">
+  <a href="index.html" class="back-button">← Voltar ao Dashboard</a>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">M89 RESEARCH</div>
+  <div class="company">MRV&CO · Análise Trimestral · Uso Interno</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="ticker-badge">MRVE3</div>
+    <div>
+      <h1>MRV Engenharia e Participações S.A.</h1>
+      <div class="meta">
+        <span>Incorporação Residencial (MCMV)</span>
+        <span>·</span>
+        <span>Release 1T26: 11/mai/2026</span>
+        <span>·</span>
+        <span>Análise M89: 18/mai/2026</span>
+      </div>
+    </div>
+    <div class="price">
+      <div class="val">R$ 6,42</div>
+      <div class="lbl">Preço · 11/mai/2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpis">
+  <div class="kpis-inner">
+    <div class="kpi">
+      <div class="lbl">ROL MRV Inc</div>
+      <div class="val">R$ 2.562M</div>
+      <div class="delta pos">+17,6% YoY · -8,2% QoQ</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Margem Bruta</div>
+      <div class="val">31,0%</div>
+      <div class="delta pos">+1,4 p.p. YoY · flat QoQ</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">LL Brasil</div>
+      <div class="val">R$ 44,6M</div>
+      <div class="delta pos">+R$ 114,7M YoY</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Caixa MRV Inc ex-cessão</div>
+      <div class="val">R$ 15M</div>
+      <div class="delta neu">vs. R$ 182M no 4T25</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">DL/EBITDA LTM</div>
+      <div class="val">4,15x</div>
+      <div class="delta pos">vs. 5,52x no 4T25</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">VSO Líquida</div>
+      <div class="val">21,5%</div>
+      <div class="delta neg">-3,5 p.p. YoY</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">Resia Desinvestido</div>
+      <div class="val">US$ 241M</div>
+      <div class="delta neu">30% do plano US$ 800M</div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tabs-inner">
+    <div class="tab active" data-tab="destaques">Destaques</div>
+    <div class="tab" data-tab="macro">Macro</div>
+    <div class="tab" data-tab="receita">Receita</div>
+    <div class="tab" data-tab="margem">Margem & Despesas</div>
+    <div class="tab" data-tab="ll-caixa">LL & Caixa</div>
+    <div class="tab" data-tab="divida">Dívida</div>
+    <div class="tab" data-tab="resia">Resia</div>
+    <div class="tab" data-tab="peers">Peers</div>
+    <div class="tab" data-tab="sell-side">Sell-Side</div>
+    <div class="tab" data-tab="tese">Tese</div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- DESTAQUES -->
+<div class="tab-content active" id="tab-destaques">
+  <div class="section-title">Destaques do Trimestre</div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:18%">Tema</th>
+          <th>Leitura</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Inflação</strong></td>
+          <td>Revisão preventiva do INCC de 6% para 8% pressionou os custos no trimestre; movimento conservador, com potencial reversão positiva se o realizado vier abaixo</td>
+        </tr>
+        <tr>
+          <td><strong>Receita</strong></td>
+          <td>Vendas concentradas em março ficaram sem repasse processado, não materializaram receita no 1T26; <strong>2T26 vira o teste</strong> (abril já entregou 3.500 unidades repassadas)</td>
+        </tr>
+        <tr>
+          <td><strong>Margem Bruta</strong></td>
+          <td>Flat QoQ em 31,0% travou a expansão sequencial esperada — leitura preocupante mas atribuída à revisão do INCC; <strong>backlog em 44% e margem de novas vendas perto de 35%</strong> preservam a tese</td>
+        </tr>
+        <tr>
+          <td><strong>Cessão de Recebíveis</strong></td>
+          <td>Carteira ainda crescendo (R$ 3,7B, +5,8% YoY); meta declarada da empresa é zerar o crescimento em 2026 (originação = amortização)</td>
+        </tr>
+        <tr>
+          <td><strong>Resia</strong></td>
+          <td>Apenas 30% do plano executado até o 1T26 (US$ 241M de US$ 800M); cronograma apertado exige ritmo de ~US$ 186M/trimestre nos próximos 3 trimestres para fechar 2026</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Sinalizações 4T25 × Execução 1T26</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sinalização</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Expansão de margem bruta</td><td><span class="tag orange">Parcial</span></td></tr>
+          <tr><td>Marketing one-off no 1T26</td><td><span class="tag green">Conforme</span></td></tr>
+          <tr><td>G&A abaixo da inflação</td><td><span class="tag green">Entregue</span></td></tr>
+          <tr><td>1T26 > 1T25</td><td><span class="tag green">Com folga</span></td></tr>
+          <tr><td>Lucro ≈ Caixa</td><td><span class="tag orange">Sazonalidade</span></td></tr>
+          <tr><td>Desinvestimento Resia</td><td><span class="tag green">Acelerou</span></td></tr>
+          <tr><td>Covenants confortáveis</td><td><span class="tag orange">Monitorar</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Decomposição do LL Consolidado</div>
+      <div class="chart-container">
+        <canvas id="chartLLDecomp"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MACRO -->
+<div class="tab-content" id="tab-macro">
+  <div class="section-title">Contexto Macro · MCMV</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">MCMV em momento favorável</div>
+      <div class="bullet">Novas regras vigentes a partir do 1T26 — ampliação das faixas de renda e aumento dos subsídios</div>
+      <div class="bullet">Isenção do IR para rendas até R$ 5.000 — amplia mercado endereçável</div>
+      <div class="bullet">Cheques estaduais: dinâmica positiva; disrupções em Ceará e Amazonas mas MRV vende sem o cheque nessas praças</div>
+      <div class="bullet">Orçamento habitacional 2026 em patamar recorde</div>
+      <div class="bullet"><strong>Risco macro:</strong> destinação de parte do FGTS para o Desenrola abriu precedente</div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Endividamento das famílias</div>
+      <div class="bullet"><strong>Recorde histórico em abril/2026: 80,9% dos lares com dívidas</strong></div>
+      <div class="bullet">Ajustes do MCMV preservaram capacidade de compra do público-alvo</div>
+      <div class="bullet">Management acompanha mas não enxerga como headwind</div>
+      <div class="bullet">MRV reduz deliberadamente carteira pós-chaves (inadimplência maior)</div>
+      <div class="bullet">Direcional confirma: impacto marginal nas conversões; pool de demanda MCMV é robusto</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Inflação · INCC vs. Peers</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>INCC Provisão 2026</th>
+          <th>Impacto da Guerra</th>
+          <th>Resposta Operacional</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>MRV</strong></td><td><strong>8%</strong> (revisado de 6% no 1T26)</td><td>+R$ 900/unidade (~0,3% PSV)</td><td>Estoque pronto como hedge</td></tr>
+        <tr><td>Cury</td><td>8%</td><td>+3-5% materiais</td><td>Sem mudanças nos processos</td></tr>
+        <tr><td>Direcional</td><td><strong>6%</strong> (mais baixo)</td><td>Frete só 3% da estrutura</td><td>Sem ajuste no pipeline</td></tr>
+        <tr><td>Plano Plano</td><td>7-7,5% (acelerando)</td><td>+1,8 p.p. atribuíveis à guerra</td><td>Controle apertado</td></tr>
+        <tr><td>Tenda</td><td>8% (revisado p/ <strong>baixo</strong> de 11%)</td><td>Já embutido</td><td>Eficiência + preços compensam</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>Leitura:</strong> MRV alinhou-se ao consenso setorial de 8%, mas com timing tardio — explica por que foi a única do setor a reportar margem travada por revisão orçamentária. Daqui pra frente, em pé de igualdade com peers em hipótese de custo.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Risco regulatório local</div>
+    <div class="bullet"><strong>Lei de Zoneamento SP:</strong> MRV apenas 7% das vendas em SP — exposição muito menor que peers</div>
+    <div class="bullet">Plano Plano: impacto de ~40% nos lançamentos</div>
+    <div class="bullet">Cury: impacto de ~15% nos lançamentos</div>
+    <div class="bullet">Revisão de Planos Diretores em BH e RJ — efeito incremental positivo de longo prazo</div>
+  </div>
+</div>
+
+<!-- RECEITA -->
+<div class="tab-content" id="tab-receita">
+  <div class="section-title">Receita · MRV Incorporação</div>
+
+  <div class="card">
+    <div class="subsection-title">Indicadores Operacionais (% MRV)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>R$M / %MRV</th>
+          <th>1T26</th>
+          <th>4T25</th>
+          <th>1T25</th>
+          <th>YoY</th>
+          <th>QoQ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>ROL MRV Inc</strong></td><td>2.562</td><td>2.791</td><td>2.179</td><td><span class="tag green">+17,6%</span></td><td><span class="tag red">-8,2%</span></td></tr>
+        <tr><td>Vendas Líquidas</td><td>2.469</td><td>2.760</td><td>2.167</td><td><span class="tag green">+13,9%</span></td><td><span class="tag red">-10,5%</span></td></tr>
+        <tr><td>VGV Lançado</td><td>2.915</td><td>2.846</td><td>2.888</td><td><span class="tag green">+0,9%</span></td><td><span class="tag green">+2,4%</span></td></tr>
+        <tr><td>VSO Líquida</td><td>21,5%</td><td>24,2%</td><td>25,0%</td><td><span class="tag red">-3,5 p.p.</span></td><td><span class="tag red">-2,7 p.p.</span></td></tr>
+        <tr><td>Ticket médio (R$ mil)</td><td>270,6</td><td>264,1</td><td>259,3</td><td><span class="tag green">+4,4%</span></td><td><span class="tag green">+2,5%</span></td></tr>
+        <tr><td>Unidades Produzidas</td><td>9.747</td><td>9.836</td><td>9.454</td><td><span class="tag green">+3,1%</span></td><td><span class="tag red">-0,9%</span></td></tr>
+        <tr><td>Unidades Repassadas</td><td>8.229</td><td>9.864</td><td>7.180</td><td><span class="tag green">+14,6%</span></td><td><span class="tag red">-16,6%</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Histórico de Receita e Vendas Líquidas (R$M)</div>
+    <div class="chart-container tall">
+      <canvas id="chartReceita"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Discurso do Management</div>
+      <div class="bullet">Meta comercial 2026: aumentar volume de vendas líquidas — repasses acompanhando ou superando produção</div>
+      <div class="bullet">CEO: vendas e repasses equalizados a partir do 2T26 ("andar de mãos dadas")</div>
+      <div class="bullet">Repasses de abril +28,7% vs. média mensal do 1T26 (3.500 vs. 2.700)</div>
+      <div class="bullet">"Menos pro-soluto, mais VSO real, aumentando preço" — combinação rara no setor</div>
+    </div>
+    <div class="card">
+      <div class="subsection-title">Estoque pronto como ativo estratégico</div>
+      <div class="bullet">Estoque "pronto mesmo" baixo — funciona como colchão de liquidez</div>
+      <div class="bullet">Safras avançadas têm oportunidade de acelerar margem com pouco risco inflacionário</div>
+      <div class="bullet">Produção > vendas em 2022-2024 retardou caixa, mas hoje funciona como hedge inflacionário</div>
+      <div class="bullet">Land bank %MRV: R$ 41,4B VGV; 167k unidades a R$ 247k médios</div>
+    </div>
+  </div>
+</div>
+
+<!-- MARGEM & DESPESAS -->
+<div class="tab-content" id="tab-margem">
+  <div class="section-title">Margem Bruta & Despesas Operacionais</div>
+
+  <div class="card">
+    <div class="subsection-title">Trajetória de Margem Bruta MRV Inc</div>
+    <div class="chart-container">
+      <canvas id="chartMargem"></canvas>
+    </div>
+    <div class="callout">
+      <strong>Backlog Margin estável em 44,0%</strong> — runway de ~3 p.p. até o nível-alvo de longo prazo (~34% reportada). Margem de novas vendas próxima a 35%; abril/26 > março/26 > 4T25 (inflexão já em curso, ainda não materializada no reportado).
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Drivers da margem</div>
+      <div class="bullet"><strong>(+)</strong> Land bank com menor custo unitário (maior % de permuta dos últimos anos)</div>
+      <div class="bullet"><strong>(+)</strong> Revisão e otimização do portfólio</div>
+      <div class="bullet"><strong>(+)</strong> Ganho de eficiência na produção (linearização)</div>
+      <div class="bullet"><strong>(+)</strong> Aumento de preço acima da inflação (+4,4% ticket YoY)</div>
+      <div class="bullet"><strong>(-)</strong> Revisão INCC 6%→8% (one-off; impacto R$ 900/unidade)</div>
+      <div class="bullet"><strong>(+)</strong> 1/3 das praças operando com margem próxima a 40%</div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Despesas / Vendas Líquidas MRV Inc</div>
+      <table>
+        <thead>
+          <tr><th></th><th>1T26</th><th>4T25</th><th>1T25</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Despesas Comerciais (R$M)</td><td>245</td><td>205</td><td>236</td></tr>
+          <tr><td>Comerciais / Vendas</td><td>9,9%</td><td>7,4%</td><td>10,9%</td></tr>
+          <tr><td>G&A (R$M)</td><td>121</td><td>126</td><td>118</td></tr>
+          <tr><td>G&A / Vendas</td><td>4,9%</td><td>4,6%</td><td>5,4%</td></tr>
+          <tr><td><strong>SG&A Total / Vendas</strong></td><td><strong>14,8%</strong></td><td><strong>12,0%</strong></td><td><strong>16,4%</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Discurso do management — despesas</div>
+    <div class="bullet">Comerciais elevadas no 1T26 são <strong>one-off</strong> de campanha de branding (marca MRV é a mais conhecida do setor)</div>
+    <div class="bullet">Sales e G&A como % das vendas vão cair em 2026 vs. 2025 — guidance verbal explícito</div>
+    <div class="bullet">G&A segue crescendo abaixo da inflação; dilution estrutural</div>
+  </div>
+</div>
+
+<!-- LL & CAIXA -->
+<div class="tab-content" id="tab-ll-caixa">
+  <div class="section-title">Lucro Líquido & Geração de Caixa</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">P&L MRV Inc Standalone (R$M)</div>
+      <table>
+        <thead><tr><th></th><th>1T26</th><th>4T25</th><th>1T25</th></tr></thead>
+        <tbody>
+          <tr><td>EBIT</td><td>349</td><td>454</td><td>227</td></tr>
+          <tr><td>Margem EBIT</td><td>13,6%</td><td>16,3%</td><td>10,4%</td></tr>
+          <tr><td>Resultado Financeiro</td><td>-238</td><td>-212</td><td>-259</td></tr>
+          <tr><td>LL Controladora</td><td><strong>45</strong></td><td>169</td><td>-70</td></tr>
+          <tr><td><strong>LL Ajustado</strong></td><td><strong>133</strong></td><td>n.d.</td><td>-70</td></tr>
+          <tr><td>Margem Líquida</td><td>1,7%</td><td>6,1%</td><td>-3,2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Histórico de LL Consolidado</div>
+      <div class="chart-container">
+        <canvas id="chartLL"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Geração de Caixa MRV Inc — três metodologias</div>
+    <div class="chart-container tall">
+      <canvas id="chartCaixa"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Caixa MRV Inc · pontos do trimestre</div>
+      <div class="bullet"><strong>Reportado:</strong> +R$ 87M (positivo, mas qualidade baixa — predominância de cessão Flex)</div>
+      <div class="bullet"><strong>UBS ex-cessão:</strong> +R$ 15M (positivo, mas decepcionou vs. R$ 182M no 4T25)</div>
+      <div class="bullet"><strong>BTG recorrente:</strong> -R$ 29M (queima na visão mais estrita)</div>
+      <div class="bullet"><strong>LTM ex-cessão (UBS):</strong> +R$ 33M (1T26) — primeiro break-even anual desde 2022</div>
+      <div class="bullet">Catch-up 2026: precisa de ~R$ 210-250M/tri para alinhar com LL 2026E de R$ 700-800M</div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Cessão de Recebíveis & Pro-soluto</div>
+      <div class="bullet">Carteira total: <strong>R$ 3,7B</strong> (+6% YoY; +3% QoQ)</div>
+      <div class="bullet">Composição: <strong>66% Flex (true sale)</strong> | 34% Pro-soluto retido</div>
+      <div class="bullet">Carteira líquida: R$ 2,5B (-4% QoQ); Flex líquido apenas R$ 195M</div>
+      <div class="bullet">Meta 2026: <strong>originação = amortização</strong> (zerar crescimento do passivo de cessão)</div>
+      <div class="bullet">Pro-soluto pós-chaves: foco de redução (inadimplência 8-15% no setor)</div>
+    </div>
+  </div>
+</div>
+
+<!-- DÍVIDA -->
+<div class="tab-content" id="tab-divida">
+  <div class="section-title">Endividamento · MRV Brasil</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Alavancagem Consolidada (R$M)</div>
+      <table>
+        <thead><tr><th></th><th>1T26</th><th>4T25</th><th>1T25</th></tr></thead>
+        <tbody>
+          <tr><td>Dívida Total</td><td>9.425</td><td>9.860</td><td>9.833</td></tr>
+          <tr><td>Caixa + TVMs</td><td>3.423</td><td>3.525</td><td>3.515</td></tr>
+          <tr><td><strong>Dívida Líquida</strong></td><td><strong>6.020</strong></td><td>6.374</td><td>6.388</td></tr>
+          <tr><td>EBITDA LTM</td><td>1.452</td><td>1.156</td><td>937</td></tr>
+          <tr><td><strong>DL/EBITDA LTM</strong></td><td><strong>4,15x</strong></td><td>5,52x</td><td>6,82x</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">DL/EBITDA LTM · trajetória</div>
+      <div class="chart-container">
+        <canvas id="chartDLEBITDA"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Covenants · Operação Brasil</div>
+      <table>
+        <thead><tr><th>Métrica</th><th>1T26</th><th>4T25</th><th>1T25</th><th>Limite</th></tr></thead>
+        <tbody>
+          <tr><td>DL+Imóveis a pagar / PL</td><td><strong>0,58x</strong></td><td>0,56x</td><td>0,48x</td><td>0,65x</td></tr>
+          <tr><td>Cobertura de Recebíveis</td><td>OK</td><td>OK</td><td>OK</td><td>&gt;1,6x</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        Covenant ainda controlado, mas folga (0,07x) vem se reduzindo — monitorar especialmente se houver lentidão na monetização Resia
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Perfil da Dívida</div>
+      <div class="bullet"><strong>Duration &gt; 2 anos</strong></div>
+      <div class="bullet">2026 começou sem necessidade de captação para rolar dívida nos próximos 2 anos</div>
+      <div class="bullet"><strong>Mix de indexação:</strong> CDI+1,2% · IPCA+6,5% · 12,61% pré</div>
+      <div class="bullet">Queda de Selic em 2026 alivia diretamente o componente CDI-linked</div>
+      <div class="bullet">Resultado financeiro MRV Inc: -R$ 238M (pressão segue, mas tende a aliviar)</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESIA -->
+<div class="tab-content" id="tab-resia">
+  <div class="section-title">Resia · Operação EUA</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">P&L Resia (R$M)</div>
+      <table>
+        <thead><tr><th></th><th>1T26</th><th>4T25</th><th>1T25</th></tr></thead>
+        <tbody>
+          <tr><td>Receita Líquida</td><td>148</td><td>155</td><td>31</td></tr>
+          <tr><td>Lucro Bruto</td><td>-3</td><td>+2</td><td>-22</td></tr>
+          <tr><td>Margem Bruta</td><td>-2,1%</td><td>+1,0%</td><td>-71,5%</td></tr>
+          <tr><td><strong>LL</strong></td><td><strong>-95</strong></td><td>-110</td><td>-280</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Plano de Desinvestimento</div>
+      <div class="chart-container">
+        <canvas id="chartResia"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Dinâmica das regiões</div>
+    <div class="bullet"><strong>Texas:</strong> oferta forte pressionando aluguel; preços abaixo do projetado há 1 ano; estabilização esperada até final 2T26</div>
+    <div class="bullet"><strong>Miami:</strong> performando em linha com expectativa; único mercado sem desvio negativo</div>
+    <div class="bullet">5 projetos em estabilização final; <strong>todos estabilizados até final do 3T26</strong></div>
+    <div class="bullet">Trade-off velocidade × preço: management vem optando por velocidade</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Vendas no 1T26</div>
+      <div class="bullet">Tributary (Geórgia, EUA): <strong>US$ 73,3M</strong></div>
+      <div class="bullet">Terrenos Marine Creek e Tucker: <strong>US$ 18,3M</strong></div>
+      <div class="bullet">Total trimestre: <strong>US$ 91,5M / R$ 480M</strong></div>
+      <div class="bullet">Geração de caixa líquida: <strong>US$ 69M</strong></div>
+      <div class="bullet">Vendas próximas ao book value — sem novos impairments</div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Endividamento Resia</div>
+      <div class="bullet">ND Resia: <strong>US$ 676M</strong> (-US$ 19M QoQ)</div>
+      <div class="bullet"><strong>BTG levantou flag:</strong> ND caiu apenas US$ 19M apesar das vendas de US$ 91,5M — operação consome ~US$ 72M em juros, working capital e impostos</div>
+      <div class="bullet">US$ 6,7M pagos em property taxes (anual, não recorre)</div>
+    </div>
+  </div>
+
+  <div class="callout alert">
+    <strong>Ritmo necessário para fechar 2026:</strong> US$ 186M/trimestre nos próximos 3 trimestres vs. ~US$ 28M/tri médio histórico até 4T25 e US$ 74M no 1T26 — agressivo; estabilização dos 5 projetos até 3T26 é a alavanca operacional que torna o ritmo viável.
+  </div>
+</div>
+
+<!-- PEERS -->
+<div class="tab-content" id="tab-peers">
+  <div class="section-title">Comparativo com Peers · MCMV</div>
+
+  <div class="card">
+    <div class="subsection-title">Tabela Comparativa (1T26)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Métrica</th>
+          <th>MRV Inc</th>
+          <th>Cury</th>
+          <th>Tenda</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>ROL (R$M)</td><td>2.562</td><td>1.570</td><td>1.300</td></tr>
+        <tr><td>Crescimento YoY ROL</td><td>+18%</td><td>+29%</td><td>+48%</td></tr>
+        <tr><td>Margem Bruta (ex-juros)</td><td>~32,5%</td><td>39,4%</td><td>32,4%</td></tr>
+        <tr><td>LL trimestre (R$M)</td><td>45 (adj: 133)</td><td>284</td><td>130</td></tr>
+        <tr><td>ROE anualizado</td><td>~14%*</td><td>74%</td><td>39%</td></tr>
+        <tr><td>FCF trimestre (R$M)</td><td>+87 (Brasil)</td><td>+93</td><td>+60</td></tr>
+        <tr><td><strong>P/E 26E</strong></td><td><strong>5,5x</strong></td><td>8,2x</td><td>6,0x</td></tr>
+        <tr><td><strong>P/E 27E</strong></td><td><strong>3,3x</strong></td><td>6,9x</td><td>4,4x</td></tr>
+        <tr><td>Exposição SP (% vendas)</td><td>7%</td><td>~50%</td><td>n.d.</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px; color:var(--gray); margin-top:8px;">* MRV Inc isolada, estimativa M89</p>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Múltiplos P/E · MRV vs. Peers</div>
+    <div class="chart-container">
+      <canvas id="chartMultiplos"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">A favor de MRV</div>
+      <div class="bullet">Maior escala do setor (~2x Cury e ~2x Tenda em ROL)</div>
+      <div class="bullet">Múltiplo mais barato (3,3x P/E 27E vs. 6,9x Cury, 4,4x Tenda)</div>
+      <div class="bullet">Exposição limitada a SP (7% vs. 50% Cury)</div>
+      <div class="bullet">Footprint nacional pronto, sem capex de expansão</div>
+      <div class="bullet">Trajetória de melhora mais acentuada (turnaround estrutural)</div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">A favor dos peers</div>
+      <div class="bullet">Cury opera com 78,8% ROE e geração de caixa mais limpa</div>
+      <div class="bullet">Tenda com 32% ROE consistente e crescimento de 48% YoY</div>
+      <div class="bullet">Balanço mais leve — não precisam financiar desalavancagem</div>
+      <div class="bullet">VSO historicamente acima de MRV</div>
+      <div class="bullet">Margem bruta reportada acima (Cury 39,4%)</div>
+    </div>
+  </div>
+</div>
+
+<!-- SELL-SIDE -->
+<div class="tab-content" id="tab-sell-side">
+  <div class="section-title">Visão Sell-Side</div>
+
+  <div class="card">
+    <div class="subsection-title">Ratings e Preços-alvo</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Casa</th>
+          <th>Rating</th>
+          <th>PT (R$)</th>
+          <th>Upside vs. R$ 6,42</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Bradesco BBI</strong> (Bruno Mendoza)</td><td><span class="tag green">Outperform</span></td><td>14,00</td><td>+118%</td></tr>
+        <tr><td><strong>UBS</strong> (Tainan Costa)</td><td><span class="tag green">Buy</span></td><td>12,00</td><td>+87%</td></tr>
+        <tr><td><strong>BTG Pactual</strong> (Gustavo Cambauva)</td><td><span class="tag green">Buy</span></td><td>12,00</td><td>+87%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Visão por tema</div>
+    <table>
+      <thead>
+        <tr><th>Tema</th><th>Bradesco BBI</th><th>UBS</th><th>BTG Pactual</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Tom</strong></td><td>"Soft Quarter Overall"</td><td>"Bottom line miss across all subsidiaries"</td><td>"Weaker-than-expected Q1, mostly in Brazil"</td></tr>
+        <tr><td><strong>Resultado geral</strong></td><td>Em linha; tendências positivas no 2T26</td><td>Miss generalizado; estrutural intacta</td><td>Abaixo do esperado; Brasil foi o problema</td></tr>
+        <tr><td><strong>LL MRV Inc</strong></td><td>R$ 45M vs. R$ 122M BBIe</td><td>R$ 45M vs. R$ 93M UBSe</td><td>R$ 45M vs. R$ 100M BTGe</td></tr>
+        <tr><td><strong>Geração de Caixa</strong></td><td>R$ 15M ex-cessão</td><td>Break-even LTM (1ª vez desde 2022)</td><td>Cash burn recorrente -R$ 29M</td></tr>
+        <tr><td><strong>Resia</strong></td><td>Sem alarme; dados factuais</td><td><strong>Destaque positivo:</strong> ocupação avançando</td><td><strong>Destaque crítico:</strong> ND quase parada</td></tr>
+        <tr><td><strong>2T26 Expectativa</strong></td><td>Margem e caixa com normalização</td><td>Aceleração possível de caixa</td><td>Contingente à execução</td></tr>
+        <tr><td><strong>Riscos</strong></td><td>Execução de margens e desalavancagem</td><td>Break-even sustentável</td><td>Cash burn; Resia lenta</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Estimativas 2026E-2027E</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Métrica</th>
+          <th>BBI 2026E</th>
+          <th>BBI 2027E</th>
+          <th>UBS 2026E</th>
+          <th>UBS 2027E</th>
+          <th>BTG 2026E</th>
+          <th>BTG 2027E</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>LL Ajustado (R$M)</td><td>674</td><td>1.091</td><td>928</td><td>1.159</td><td>821</td><td>1.195</td></tr>
+        <tr><td>EPS (R$)</td><td>1,20</td><td>1,94</td><td>1,65</td><td>2,06</td><td>1,46</td><td>2,12</td></tr>
+        <tr><td>P/E (preço atual)</td><td>5,3x</td><td>3,3x</td><td>3,9x</td><td>3,1x</td><td>4,4x</td><td>3,0x</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Síntese:</strong> três casas em Buy/Outperform com PTs entre R$ 12-14 (+87% a +118%). Diferença de tom é menor em rating, maior em narrativa: BBI vê copo meio cheio; UBS vê copo estruturalmente curado; BTG vê copo ainda meio vazio. <strong>Nenhum rebaixou</strong> — todos enxergam o miss do 1T26 como tático, não estrutural.
+  </div>
+</div>
+
+<!-- TESE -->
+<div class="tab-content" id="tab-tese">
+  <div class="section-title">Drivers da Tese</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="subsection-title">Catalisadores próximos (2 trimestres)</div>
+      <div class="bullet"><strong>2T26 results (agosto/26):</strong> principal gatilho — retomada da expansão da margem bruta MRV Inc para ~32%</div>
+      <div class="bullet"><strong>Caixa recorrente positivo (≥R$ 150M):</strong> teste-chave da qualidade operacional</div>
+      <div class="bullet"><strong>Normalização repasses ≥ produção:</strong> teste comercial do ano</div>
+      <div class="bullet"><strong>Estabilização Texas (final 2T26):</strong> abre janela de venda em escala</div>
+      <div class="bullet">Margem de novas vendas crescendo: abril > março > 4T25</div>
+    </div>
+
+    <div class="card">
+      <div class="subsection-title">Catalisadores estruturais (12-24 meses)</div>
+      <div class="bullet">Conclusão do plano de desinvestimento Resia (US$ 800M)</div>
+      <div class="bullet">Simplificação organizacional → re-rating de múltiplo</div>
+      <div class="bullet">ROE MRV Inc consolidando &gt;15%</div>
+      <div class="bullet">Margem bruta reportada cruzando 34% (backlog 44% suporta)</div>
+      <div class="bullet">Eventual retomada de payout (2027+)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Riscos da Tese</div>
+    <table>
+      <thead>
+        <tr><th>Risco</th><th>Severidade</th><th>Comentário</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Execução do desinvestimento Resia abaixo do plano</td><td><span class="tag red">ALTO</span></td><td>Cronograma apertado: US$ 186M/tri necessários; covenant Brasil já em 0,58x vs. 0,65x</td></tr>
+        <tr><td>Recorrência da queima de caixa MRV Inc</td><td><span class="tag red">ALTO</span></td><td>Se 2T26 não destravar caixa recorrente positivo, justificativa sazonal perde força</td></tr>
+        <tr><td>Recrudescimento inflacionário (INCC &gt; 8%)</td><td><span class="tag orange">MÉDIO</span></td><td>R$ 900/unidade já provisionado; assimetria favorável</td></tr>
+        <tr><td>FGTS / regras MCMV (Desenrola precedente)</td><td><span class="tag orange">MÉDIO</span></td><td>Risco macro estrutural; principal flag de sell-side</td></tr>
+        <tr><td>Pressão de preço Resia no Texas</td><td><span class="tag orange">MÉDIO</span></td><td>Reduz VPL do plano US$ 800M; Miami é contrapeso</td></tr>
+        <tr><td>Endividamento das famílias (recorde 80,9% abril/26)</td><td><span class="tag orange">MÉDIO</span></td><td>Monitorar; demanda MCMV mostra-se inelástica até agora</td></tr>
+        <tr><td>Cheques estaduais falhando em mais estados</td><td><span class="tag gray">BAIXO</span></td><td>MRV já vende sem cheque onde há ruptura</td></tr>
+        <tr><td>Lei de Zoneamento SP escalando</td><td><span class="tag gray">BAIXO</span></td><td>Exposição MRV apenas 7%</td></tr>
+        <tr><td>Selic alta prolongada</td><td><span class="tag gray">BAIXO</span></td><td>Pressiona resultado financeiro; cada turn de DL alivia</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="subsection-title">Próximos checkpoints</div>
+    <div class="bullet"><strong>Repasses de maio e junho/26:</strong> confirmar ou desmentir o +29% de abril</div>
+    <div class="bullet"><strong>2T26 release (agosto/26):</strong> margem MRV Inc, caixa recorrente, alavancagem</div>
+    <div class="bullet"><strong>Estabilização Texas (final 2T26):</strong> desbloqueio de venda em volume na Resia</div>
+    <div class="bullet"><strong>Conference call do management:</strong> narrativa 2S26 e tese 2027</div>
+  </div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  M89 Research · Documento de uso interno · Não constitui recomendação formal de compra ou venda<br>
+  Análise preparada com base em release público, ITR, call do management e research sell-side disponível na data
+</div>
+
+<script>
+// Color palette
+const COLORS = {
+  navy: '#1a2744',
+  blue: '#2c7be5',
+  green: '#28a745',
+  red: '#dc3545',
+  orange: '#e67e22',
+  gray: '#6c757d'
+};
+
+// Chart.js defaults
+Chart.defaults.font.family = "'Segoe UI', system-ui, -apple-system, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#2c3142';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.boxWidth = 8;
+
+// Initialize charts only when tabs are opened (lazy load)
+const chartsInitialized = {};
+
+function initChart(name) {
+  if (chartsInitialized[name]) return;
+  chartsInitialized[name] = true;
+
+  switch(name) {
+    case 'LLDecomp': initLLDecompChart(); break;
+    case 'Receita': initReceitaChart(); break;
+    case 'Margem': initMargemChart(); break;
+    case 'LL': initLLChart(); break;
+    case 'Caixa': initCaixaChart(); break;
+    case 'DLEBITDA': initDLEBITDAChart(); break;
+    case 'Resia': initResiaChart(); break;
+    case 'Multiplos': initMultiplosChart(); break;
+  }
+}
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
+
+    // Lazy init charts for this tab
+    switch(target) {
+      case 'destaques': initChart('LLDecomp'); break;
+      case 'receita': initChart('Receita'); break;
+      case 'margem': initChart('Margem'); break;
+      case 'll-caixa': initChart('LL'); initChart('Caixa'); break;
+      case 'divida': initChart('DLEBITDA'); break;
+      case 'resia': initChart('Resia'); break;
+      case 'peers': initChart('Multiplos'); break;
+    }
+  });
+});
+
+// Trigger initial tab charts
+initChart('LLDecomp');
+
+// =========================================================
+// CHART DEFINITIONS
+// =========================================================
+function initLLDecompChart() {
+  new Chart(document.getElementById('chartLLDecomp'), {
+    type: 'bar',
+    data: {
+      labels: ['MRV Inc', 'Urba', 'Luggo', 'Resia', 'Consolidado'],
+      datasets: [{
+        label: 'LL 1T26 (R$M)',
+        data: [45, -13, -14, -95, -78],
+        backgroundColor: [COLORS.green, COLORS.red, COLORS.red, COLORS.red, COLORS.gray],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { callback: v => 'R$ ' + v + 'M' } }
+      }
+    }
+  });
+}
+
+function initReceitaChart() {
+  const labels = ['1Q22','2Q22','3Q22','4Q22','1Q23','2Q23','3Q23','4Q23','1Q24','2Q24','3Q24','4Q24','1Q25','2Q25','3Q25','4Q25','1Q26'];
+  const rol = [1641,1559,1636,1564,1645,1771,1854,1926,1893,2090,2202,2179,2179,2525,2649,2791,2562];
+  const vendas = [1495,1485,1432,1482,1801,2226,2213,2308,2131,2310,2539,2752,2167,2611,2657,2760,2469];
+
+  new Chart(document.getElementById('chartReceita'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'ROL MRV Inc',
+          data: rol,
+          backgroundColor: COLORS.navy,
+          borderRadius: 2
+        },
+        {
+          label: 'Vendas Líquidas',
+          data: vendas,
+          backgroundColor: COLORS.blue,
+          borderRadius: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { ticks: { callback: v => 'R$ ' + (v/1000).toFixed(1) + 'B' } } }
+    }
+  });
+}
+
+function initMargemChart() {
+  const labels = ['1Q22','2Q22','3Q22','4Q22','1Q23','2Q23','3Q23','4Q23','1Q24','2Q24','3Q24','4Q24','1Q25','2Q25','3Q25','4Q25','1Q26'];
+  const margem = [19.4,18.9,18.9,19.4,20.6,22.1,23.4,24.5,25.9,26.0,26.6,27.0,29.6,30.2,30.7,31.0,31.0];
+  const lucroB = [318,295,309,304,338,392,451,463,480,544,594,614,644,762,813,865,793];
+
+  new Chart(document.getElementById('chartMargem'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Lucro Bruto (R$M)',
+          data: lucroB,
+          backgroundColor: COLORS.blue,
+          yAxisID: 'y',
+          order: 2
+        },
+        {
+          type: 'line',
+          label: 'Margem Bruta (%)',
+          data: margem,
+          borderColor: COLORS.green,
+          backgroundColor: COLORS.green,
+          yAxisID: 'y1',
+          tension: 0.3,
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { position: 'left', ticks: { callback: v => 'R$ ' + v + 'M' } },
+        y1: { position: 'right', ticks: { callback: v => v + '%' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+}
+
+function initLLChart() {
+  const labels = ['1Q24','2Q24','3Q24','4Q24','1Q25','2Q25','3Q25','4Q25','1Q26'];
+  const ll = [-169,-71,-13,-250,-359,-812,87,41,-78];
+
+  new Chart(document.getElementById('chartLL'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'LL Consolidado (R$M)',
+        data: ll,
+        backgroundColor: ll.map(v => v >= 0 ? COLORS.green : COLORS.red),
+        borderRadius: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { ticks: { callback: v => 'R$ ' + v + 'M' } } }
+    }
+  });
+}
+
+function initCaixaChart() {
+  const labels = ['1Q24','2Q24','3Q24','4Q24','1Q25','2Q25','3Q25','4Q25','1Q26'];
+  const reportado = [-19,-74,72,203,-69,-55,-20,80,87];
+  const ubsExCessao = [-282,-138,49,131,-184,-150,-69,182,15];
+
+  new Chart(document.getElementById('chartCaixa'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Reportado MRV Inc',
+          data: reportado,
+          backgroundColor: COLORS.blue,
+          borderRadius: 2
+        },
+        {
+          label: 'UBS Ex-Cessão',
+          data: ubsExCessao,
+          backgroundColor: COLORS.orange,
+          borderRadius: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { ticks: { callback: v => 'R$ ' + v + 'M' } } }
+    }
+  });
+}
+
+function initDLEBITDAChart() {
+  const labels = ['1Q25','2Q25','3Q25','4Q25','1Q26'];
+  const data = [6.82, 11.17, 8.47, 5.52, 4.15];
+
+  new Chart(document.getElementById('chartDLEBITDA'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'DL/EBITDA LTM (x)',
+        data,
+        borderColor: COLORS.navy,
+        backgroundColor: 'rgba(26, 39, 68, 0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 6,
+        pointBackgroundColor: COLORS.blue
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { ticks: { callback: v => v + 'x' } } }
+    }
+  });
+}
+
+function initResiaChart() {
+  new Chart(document.getElementById('chartResia'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Realizado até 4T25', 'Realizado 1T26', 'Restante 2T26-4T26'],
+      datasets: [{
+        data: [167, 74, 559],
+        backgroundColor: [COLORS.blue, COLORS.green, COLORS.gray],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: { label: ctx => ctx.label + ': US$ ' + ctx.parsed + 'M' }
+        }
+      }
+    }
+  });
+}
+
+function initMultiplosChart() {
+  new Chart(document.getElementById('chartMultiplos'), {
+    type: 'bar',
+    data: {
+      labels: ['MRV', 'Plano Plano', 'Tenda', 'Direcional', 'Cury'],
+      datasets: [
+        {
+          label: 'P/E 2026E',
+          data: [5.5, 5.1, 6.0, 6.5, 8.2],
+          backgroundColor: COLORS.blue,
+          borderRadius: 4
+        },
+        {
+          label: 'P/E 2027E',
+          data: [3.3, 3.9, 4.4, 5.3, 6.9],
+          backgroundColor: COLORS.navy,
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { x: { ticks: { callback: v => v + 'x' } } }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
