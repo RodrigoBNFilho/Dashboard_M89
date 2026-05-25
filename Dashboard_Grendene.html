@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grendene 1T26 — Dashboard M89</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #1a2744;
+    --navy-light: #2a3a5e;
+    --blue: #2c7be5;
+    --blue-light: #4d93f0;
+    --green: #28a745;
+    --red: #dc3545;
+    --orange: #e67e22;
+    --gray: #6c757d;
+    --gray-light: #adb5bd;
+    --light: #f4f5f7;
+    --lighter: #fafbfc;
+    --border: #e3e6eb;
+    --white: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--light);
+    color: #212529;
+    line-height: 1.5;
+    font-size: 14px;
+  }
+
+  /* ---------- Back-bar ---------- */
+  .back-bar {
+    position: sticky;
+    top: 0;
+    background: var(--navy);
+    color: var(--white);
+    padding: 10px 24px;
+    font-size: 13px;
+    z-index: 100;
+    border-bottom: 2px solid var(--blue);
+  }
+  .back-bar a {
+    color: var(--white);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.9;
+    transition: opacity 0.15s;
+  }
+  .back-bar a:hover { opacity: 1; }
+
+  /* ---------- Page header ---------- */
+  .page-header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: var(--white);
+    padding: 28px 32px 24px;
+  }
+  .page-header .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .ticker-badge {
+    background: var(--blue);
+    color: var(--white);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+  }
+  .company-info h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+  .company-info .meta {
+    font-size: 13px;
+    opacity: 0.85;
+  }
+  .header-right {
+    margin-left: auto;
+    text-align: right;
+    font-size: 13px;
+  }
+  .header-right .price {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .header-right .price-label {
+    opacity: 0.75;
+    font-size: 12px;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* Tag strip below header */
+  .tag-strip {
+    background: var(--white);
+    padding: 12px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-size: 13px;
+  }
+  .tag-strip .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag-strip .tag-label {
+    color: var(--gray);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-strip .tag-value { color: var(--navy); font-weight: 600; }
+  .tag-strip .tag-value.green { color: var(--green); }
+
+  /* ---------- Layout ---------- */
+  .container-main {
+    max-width: 1400px;
+    margin: 24px auto;
+    padding: 0 32px;
+  }
+
+  /* ---------- KPI strip ---------- */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--navy);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .kpi-card.alert { border-top-color: var(--red); }
+  .kpi-card.warn  { border-top-color: var(--orange); }
+  .kpi-card .label {
+    font-size: 11px;
+    color: var(--gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+  .kpi-card .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.1;
+  }
+  .kpi-card .delta {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .delta.up    { color: var(--green); }
+  .delta.down  { color: var(--red); }
+  .delta.warn  { color: var(--orange); }
+  .delta.neutral { color: var(--gray); }
+
+  /* ---------- Veredito callout ---------- */
+  .veredito {
+    background: var(--white);
+    border-left: 5px solid var(--blue);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #2c3e50;
+  }
+  .veredito strong { font-style: normal; color: var(--navy); }
+
+  /* ---------- Destaques bullets ---------- */
+  .destaques {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--navy);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .destaques h2 {
+    color: var(--navy);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .destaques ul {
+    list-style: none;
+    padding: 0;
+  }
+  .destaques li {
+    position: relative;
+    padding-left: 22px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    border-bottom: 1px dashed #eef0f3;
+  }
+  .destaques li:last-child { border-bottom: none; }
+  .destaques li:before {
+    content: "▸";
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    color: var(--blue);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .destaques li b { color: var(--navy); }
+  .destaques li.alert:before { color: var(--red); }
+  .destaques li.warn:before  { color: var(--orange); }
+
+  /* ---------- Section ---------- */
+  .section {
+    margin-bottom: 32px;
+  }
+  .section h2 {
+    color: var(--navy);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section h2 .star { color: var(--orange); }
+  .section .subtitle {
+    color: var(--gray);
+    font-size: 13px;
+    margin-top: -10px;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+
+  /* Cards grid for chart row */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .chart-row.full {
+    grid-template-columns: 1fr;
+  }
+  .chart-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 16px 18px 18px;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .chart-card .chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .chart-card .chart-note {
+    font-size: 11px;
+    color: var(--gray);
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+  .chart-container {
+    position: relative;
+    height: 270px;
+  }
+  .chart-container.tall {
+    height: 320px;
+  }
+
+  /* Bullets */
+  .bullets {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    margin-top: 12px;
+  }
+  .bullets ul {
+    list-style: none;
+    padding: 0;
+  }
+  .bullets li {
+    position: relative;
+    padding-left: 18px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .bullets li:before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--blue);
+    font-weight: 700;
+  }
+  .bullets li b { color: var(--navy); }
+  .bullets .alert b { color: var(--red); }
+
+  /* Yield callout */
+  .yield-callout {
+    background: linear-gradient(135deg, #eafbe4 0%, #d4f3cb 100%);
+    border-left: 5px solid var(--green);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .yield-callout strong { color: #1f7c30; }
+  .yield-callout .big {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green);
+    margin-right: 10px;
+  }
+
+  /* GGB cards */
+  .ggb-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .ggb-card {
+    background: var(--white);
+    padding: 16px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--orange);
+  }
+  .ggb-card h4 {
+    color: var(--navy);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .ggb-card p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #2c3e50;
+  }
+
+  .societarios-line {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gray);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #2c3e50;
+    margin-bottom: 14px;
+  }
+  .societarios-line b { color: var(--navy); }
+
+  /* Risk cards */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .risk-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 14px 14px;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--red);
+  }
+  .risk-card h5 {
+    color: var(--navy);
+    font-size: 12.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .risk-card p {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #495057;
+  }
+
+  /* Trigger callout */
+  .trigger-callout {
+    background: var(--white);
+    border-left: 5px solid var(--orange);
+    border-radius: 6px;
+    padding: 18px 22px;
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-top: 18px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .trigger-callout h3 {
+    color: var(--navy);
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+  .trigger-callout ol {
+    margin-left: 20px;
+    margin-top: 6px;
+  }
+  .trigger-callout ol li { margin-bottom: 4px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 28px 32px 40px;
+    color: var(--gray);
+    font-size: 11.5px;
+    font-style: italic;
+    border-top: 1px solid var(--border);
+    margin-top: 28px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .kpi-strip { grid-template-columns: repeat(4, 1fr); }
+    .chart-row { grid-template-columns: 1fr; }
+    .ggb-grid { grid-template-columns: 1fr; }
+    .risk-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .risk-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Loading state */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--gray);
+    font-size: 12px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Back-bar -->
+  <div class="back-bar">
+    <a href="index.html">← Voltar ao Dashboard</a>
+  </div>
+
+  <!-- Page header -->
+  <header class="page-header">
+    <div class="container">
+      <div class="ticker-badge">GRND3</div>
+      <div class="company-info">
+        <h1>Grendene — Resultado 1T26</h1>
+        <div class="meta">Calçado de injeção (mass-market + fashion Melissa) · Release 07/05/2026</div>
+      </div>
+      <div class="header-right">
+        <div class="price">R$ 4,74</div>
+        <span class="price-label">Cotação 31/03/2026</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tag strip -->
+  <div class="tag-strip">
+    <div class="tag"><span class="tag-label">Posição</span><span class="tag-value green">Comprada / OW</span></div>
+    <div class="tag"><span class="tag-label">Peer</span><span class="tag-value">Vulcabras + Alpargatas</span></div>
+    <div class="tag"><span class="tag-label">Foco</span><span class="tag-value">Margem bruta / mix downtrade · Melissa</span></div>
+    <div class="tag"><span class="tag-label">Doc</span><span class="tag-value">Buy-side M89</span></div>
+  </div>
+
+  <div class="container-main">
+
+    <!-- KPI strip -->
+    <div class="kpi-strip">
+      <div class="kpi-card alert">
+        <div class="label">ROL</div>
+        <div class="value">R$ 533,8 mi</div>
+        <div class="delta down">−5,3% YoY</div>
+      </div>
+      <div class="kpi-card alert">
+        <div class="label">Receita líq / par</div>
+        <div class="value">R$ 20,78</div>
+        <div class="delta down">−6,8% YoY</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Volume (mi pares)</div>
+        <div class="value">25,7</div>
+        <div class="delta up">+1,6% YoY</div>
+      </div>
+      <div class="kpi-card alert">
+        <div class="label">Margem bruta</div>
+        <div class="value">43,1%</div>
+        <div class="delta down">−3,6 p.p.</div>
+      </div>
+      <div class="kpi-card alert">
+        <div class="label">EBITDA ajustado</div>
+        <div class="value">R$ 83,7 mi</div>
+        <div class="delta down">−31,6% YoY</div>
+      </div>
+      <div class="kpi-card alert">
+        <div class="label">LL ajustado</div>
+        <div class="value">R$ 122,1 mi</div>
+        <div class="delta down">−23,6% YoY</div>
+      </div>
+      <div class="kpi-card warn">
+        <div class="label">Caixa líquido</div>
+        <div class="value">R$ 1,06 bi</div>
+        <div class="delta warn">−24% t/t</div>
+      </div>
+    </div>
+
+    <!-- Destaques -->
+    <div class="destaques">
+      <h2>Destaques do trimestre</h2>
+      <ul>
+        <li class="alert"><b>Volume cresceu, mas preço médio caiu — receita líquida recua 5,3% YoY.</b> Volume +1,6% YoY (MI +9,3%) com mix migrando para categorias mais baratas (Ipanema e linhas masculinas dominaram) e descontos a clientes explodindo (+44% YoY). Receita líquida/par desabou 6,8% YoY a R$ 20,78. A combinação consumiu inteiramente o ganho de volume.</li>
+        <li class="alert"><b>Melissa decepcionou no mercado interno — era a marca que segurava o resultado.</b> Sell-in MI −12,0% e sell-out MI −12,7%. Headline de receita bruta total Melissa +6,9% é enganoso: vem de preço +11,5% (perto do teto de elasticidade) e crescimento de exportações, mascarando retração volumétrica forte no Brasil. A marca premium que historicamente protegia mix e margem agora contribui para a piora.</li>
+        <li class="alert"><b>Margem bruta despenca 3,6 p.p. — quebra da tese histórica de diluição via volume.</b> Margem bruta vai de 46,7% para 43,1% (pior nível desde 1T23). Empresa sempre defendeu que volume era essencial para diluir custo fixo industrial — mas no 1T26 volume cresceu e a margem caiu, porque receita/par recuou mais que o ganho volumétrico. Mão de obra subiu de 21,6% para 24,6% da ROL (+3,0 p.p., ~85% do dano). PVC retomou alta (R$ 10,94 → R$ 11,82/par).</li>
+        <li><b>Bottom line amortecido por queda de despesas e resultado financeiro ainda forte.</b> Despesas com vendas −9,0% YoY acompanharam a retração de receita (comissões/frete variáveis). Resultado financeiro ajustado de R$ 74,7 mi (−13,7%) ainda contribui materialmente. Carga tributária efetiva caiu de 16,6% para 10,9%. Sem esses três amortecedores, LL ajustado teria caído ~30% YoY.</li>
+        <li class="warn"><b>Venda da GGB USA + reorganização patrimonial + dividendos extraordinários.</b> Carta de intenções não-vinculante (09/03) para alienar 100% da GGB USA à Pajar Distribution — mgmt admite que operação direta nos EUA destruiu valor. Transferência de 43,29% das ações de Alexandre Grendene Bartelle para fundo exclusivo (10/04). Caixa cai 24% t/t após pagamento de R$ 600 mi de dividendos extraordinários — restam R$ 380 mi a pagar em 2026.</li>
+      </ul>
+    </div>
+
+    <!-- Veredito -->
+    <div class="veredito">
+      <strong>Veredito buy-side (não constitui recomendação formal):</strong> trimestre que mostra a quebra da tese
+      operacional de curto prazo — Melissa perdeu o papel de “protetor de mix”, a Divisão 1 puxou volume mas não
+      diluiu custo fixo como esperado, e a margem bruta foi para o pior nível em 3 anos. Mas a tese de longo prazo
+      (yield 2026 ≈ 17%, FCF resiliente, marcas dominantes, estrutura de capital invejável) se mantém. Posição
+      comprada continua sustentada pelo carry de dividendos; monitorar 2T26 para confirmar virada ou ajustar dimensão.
+    </div>
+
+    <!-- ============================================== -->
+    <!-- SECTION A: Receita & Mix -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Receita e quebra de mix</h2>
+      <div class="subtitle">Volume cresceu, mas receita líquida/par desabou — descontos +44% YoY consumiram o ganho volumétrico.</div>
+
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-title">Receita Líquida × Receita Líquida por Par (17 trimestres)</div>
+          <div class="chart-note">R$ milhões (barras, eixo esquerdo) · R$/par (linha, eixo direito)</div>
+          <div class="chart-container tall" data-chart="rol_par">
+            <canvas id="chart_rol_par"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Volume Trimestral por Mercado (Mercado Interno × Exportação)</div>
+          <div class="chart-note">milhões de pares · 9 trimestres</div>
+          <div class="chart-container tall" data-chart="volume_mix">
+            <canvas id="chart_volume_mix"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bullets">
+        <ul>
+          <li><b>Mercado interno:</b> volume +9,3% YoY mas R$/par −10,0%. Crescimento empurrado por Ipanema (sandálias de menor ticket) e linhas masculinas. Canais de maior giro (autosserviço, indireto) absorveram o sell-in incremental; magazines e varejo tradicional mantiveram cautela.</li>
+          <li><b>Conversão bruta → líquida deteriorou:</b> descontos a clientes <b>+44% YoY</b>, ROL/Receita Bruta cai de 79,9% para 78,2% (−1,7 p.p.). Pricing power enfraquecido — empresa privilegiou giro sobre preço.</li>
+          <li><b>Exportação pouco relevante para o trimestre:</b> volume ME −16,4% YoY, receita R$ −7,8%. Em US$ até cresceu (+2,5%), mas câmbio (BRL +10% YoY) anulou o efeito em reais. Grendene perdeu menos que o setor (−21,8% em US$ pela MDIC), mantendo share de 24,3% do volume exportado pelo Brasil.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION B: Melissa × Divisão 1 -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Melissa × Divisão 1 — a leitura crítica do trimestre</h2>
+      <div class="subtitle">Melissa decepcionou no MI (sell-in/sell-out caindo ~12%) — era a marca que protegia mix e margem. Divisão 1 acumulando estoque no canal.</div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Sell-in × Sell-out (1T26 vs 1T25, % YoY, Mercado Interno)</div>
+          <div class="chart-note">Melissa em retração proporcional · Divisão 1 com gap de 12 p.p. (sinal amarelo)</div>
+          <div class="chart-container" data-chart="sell_in_out">
+            <canvas id="chart_sell_in_out"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Receita Bruta Trimestral por Mercado (R$ mi)</div>
+          <div class="chart-note">Mercado interno × Exportação · 9 trimestres</div>
+          <div class="chart-container" data-chart="rb_mix">
+            <canvas id="chart_rb_mix"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bullets alert">
+        <ul>
+          <li><b>Melissa headline +6,9% YoY engana:</b> vem de preço (+11,5%) e exportações. Volume total −4,1%, sell-in MI −12,0% e sell-out MI −12,7%. Marca em retração clara no Brasil (principal canal).</li>
+          <li><b>Tese histórica era Melissa protegendo o mix:</b> ticket alto + posicionamento fashion compensavam categorias massificadas. No 1T26 essa proteção falhou — pano de fundo do colapso da margem bruta.</li>
+          <li><b>Preço Melissa perto do teto de elasticidade:</b> +11,5% YoY, novos aumentos correm risco de aprofundar queda volumétrica.</li>
+          <li><b>Divisão 1 — sinal amarelo:</b> sell-in MI +11,9% × sell-out MI +0,04% (gap ~12 p.p.). Empresa empurrou estoque ao canal apesar do consumo morno. Se 2T26 não converter, vem onda de devoluções/descontos no 2S26.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION C: Margem Bruta -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Margem Bruta <span class="star">★</span> — principal ponto do trimestre</h2>
+      <div class="subtitle">Empresa sempre defendeu que volume era essencial para diluir custo fixo industrial. No 1T26, volume cresceu e margem despencou — quebra dessa tese de curto prazo.</div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Lucro Bruto × Margem Bruta (17 trimestres)</div>
+          <div class="chart-note">R$ milhões (barras, eixo esquerdo) · Margem Bruta % (linha, eixo direito) · 1T26 voltou ao pior nível desde 1T23</div>
+          <div class="chart-container tall" data-chart="margem_bruta">
+            <canvas id="chart_margem_bruta"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Decomposição da Receita Líquida em Custos + Lucro Bruto (% ROL)</div>
+          <div class="chart-note">Mão de obra subiu +3,0 p.p. — explica ~85% da compressão da margem · Lucro Bruto (% ROL) = Margem Bruta</div>
+          <div class="chart-container" data-chart="cpv_decomp">
+            <canvas id="chart_cpv_decomp"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Resina PVC × CPV/par Grendene (R$)</div>
+          <div class="chart-note">Resina retomou alta em 1T26 — fim do ciclo benigno · ICIS-LOR convertido para R$/ton</div>
+          <div class="chart-container" data-chart="pvc">
+            <canvas id="chart_pvc"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bullets">
+        <ul>
+          <li><b>Mão de obra explica ~85% do dano:</b> linha sobe de 21,6% para 24,6% da ROL (+3,0 p.p.). Em R$/par, mão de obra +5,8% YoY (R$ 4,82 → R$ 5,10) — pressão da reoneração da folha. Em condições normais seria absorvido com leve perda; com ROL/par caindo 6,8%, a alavancagem inverte e a pressão relativa explode.</li>
+          <li><b>Matéria-prima volta a pressionar:</b> PVC sobe de R$ 10,94/par em dez/25 para R$ 11,82/par em mar/26. Fim do ciclo benigno de resina que ajudou margens em 2024–2025.</li>
+          <li><b>Compressão é estrutural-cíclica, não pontual.</b> Reoneração veio para ficar; PVC retomou alta; mix downtrade depende da Divisão 1 sustentar share. Margem bruta 2026 caminha para ~43–44% (vs 45,2% em 2025).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION D: Despesas, EBITDA, LL -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Despesas, EBITDA e Lucro Líquido — o que segurou o bottom line</h2>
+      <div class="subtitle">DV em queda + resultado financeiro ainda forte + alívio tributário amorteceram em ~7 p.p. a queda do LL ajustado.</div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">EBITDA × Margem EBITDA (9 trimestres)</div>
+          <div class="chart-note">R$ milhões (barras) · Margem EBITDA % (linha) · 1T25 e 1T26 com ajustado destacado em azul claro</div>
+          <div class="chart-container tall" data-chart="ebitda">
+            <canvas id="chart_ebitda"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Lucro Líquido × Margem Líquida (9 trimestres)</div>
+          <div class="chart-note">R$ milhões (barras) · Margem Líquida % (linha) · contábil + ajustado destacado em azul claro</div>
+          <div class="chart-container tall" data-chart="ll">
+            <canvas id="chart_ll"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bullets">
+        <ul>
+          <li><b>Despesas com Vendas −9,0% YoY</b> acompanham a queda de receita (comissões/frete variáveis). Investimento em P&P mantido (4,4% da ROL) — positivo para equity das marcas no MT. DG&A +4,8% pressionada pela mesma reoneração da folha que afeta a fábrica.</li>
+          <li><b>Resultado financeiro líquido ajustado R$ 74,7 mi (−13,7% YoY):</b> ainda contribui materialmente, mas em declínio pelo menor saldo médio de caixa pós-extraordinários. À medida que o caixa cai, esse amortecedor do LL vai diminuindo nos próximos trimestres.</li>
+          <li><b>Carga tributária efetiva caiu de 16,6% para 10,9%</b> — ajuste momentâneo de SUDENE/PROADI. Não tomar como nível normalizado. Sem esse alívio, LL ajustado teria caído ~30% YoY (vs −23,6% reportado).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION E: Caixa Líquido & Dividendos -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Caixa Líquido e Dividendos</h2>
+      <div class="subtitle">Caixa cai 24% no trimestre após pagamento de R$ 600 mi de dividendos extraordinários — restam R$ 380 mi a pagar em 2026.</div>
+
+      <div class="chart-row full">
+        <div class="chart-card">
+          <div class="chart-title">Trajetória do Caixa Líquido (R$ milhões)</div>
+          <div class="chart-note">Últimos 5 trimestres + projeções 2T26 e 3T26 considerando R$ 380 mi de extraordinários remanescentes</div>
+          <div class="chart-container" data-chart="caixa">
+            <canvas id="chart_caixa"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="yield-callout">
+        <span class="big">~17%</span>
+        <strong>Dividend yield total 2026 projetado</strong> — combinando R$ 380 mi de extraordinários remanescentes
+        (~8,5% yield sobre R$ 4,74) + dividendo ordinário projetado de ~R$ 0,40/ação (~8,4% yield). Entre os maiores
+        da bolsa brasileira em consumo. <strong>Esse yield é o que ancora a tese de carry da posição no curto prazo,
+        enquanto o operacional não melhora.</strong>
+      </div>
+
+      <div class="bullets">
+        <ul>
+          <li><b>Queda de R$ 336 mi no 1T26:</b> (−) R$ 600 mi de dividendos pagos (R$ 400 mi em 14/01 + R$ 200 mi em 18/03); (+) FCO R$ 253 mi; (−) Capex R$ 17 mi; (+) Outros ~R$ 28 mi.</li>
+          <li><b>Ainda restam R$ 380 mi de extraordinários:</b> R$ 200 mi em 10/06/2026 e R$ 180 mi em 09/09/2026. Caixa líquido projetado em ~R$ 940 mi ao fim do 3T26.</li>
+          <li><b>Estrutura de capital intacta:</b> Dív Líq/EBITDA LTM ≈ −2,5x. Capex/ROL ~3,2%. FCF 1T26 de R$ 236 mi cobre o extraordinário de junho com folga.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION F: GGB / Movimentos societários -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Venda da Grendene Global Brands USA</h2>
+      <div class="subtitle">Carta de intenções não-vinculante com Pajar Distribution (09/03/2026) — mgmt admite que operação direta nos EUA não funcionou.</div>
+
+      <div class="ggb-grid">
+        <div class="ggb-card">
+          <h4>Contexto</h4>
+          <p>GGB era a operação direta da Grendene nos EUA, criada como JV para distribuir marcas próprias diretamente ao varejo norte-americano (sem distribuidor terceirizado). Resultados não recorrentes negativos vinham aparecendo nos ajustes (R$ 23,9 mi no 1T25, R$ 6,4 mi no 1T26) — evidência de operação que consumia valor.</p>
+        </div>
+        <div class="ggb-card">
+          <h4>O que foi anunciado</h4>
+          <p>Comunicado ao Mercado de <b>09/03/2026:</b> assinatura de carta de intenções <b>não-vinculante</b> com a Pajar Distribution Ltée para potencial alienação de <b>100% da GGB USA, LLC</b>. Depende de due diligence, negociação de termos e acordo final. Sem prazo formal nem valor divulgado.</p>
+        </div>
+        <div class="ggb-card">
+          <h4>Implicações</h4>
+          <p>Mgmt admite que operação direta nos EUA não funcionou — volta ao modelo histórico de distribuidor terceirizado (mais leve em capital e risco). Libera capital + elimina “drag” recorrente de R$ 5–25 mi/trimestre nos ajustes. <b>Risco:</b> transição pode pressionar volume ME até o novo distribuidor estabilizar.</p>
+        </div>
+      </div>
+
+      <div class="societarios-line">
+        <b>Outros movimentos do trimestre:</b> (i) Transferência de 43,29% das ações de Alexandre Grendene Bartelle
+        para o fundo exclusivo Union Super FI (10/04/2026) — sem alteração de controle, mas abre porta para futuros
+        movimentos societários; (ii) Incorporação da MHL Calçados Ltda. aprovada na AGO/E de 23/04/2026 (sem impacto
+        operacional relevante).
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION G: Riscos -->
+    <!-- ============================================== -->
+    <section class="section">
+      <h2>Riscos a monitorar</h2>
+      <div class="risk-grid">
+        <div class="risk-card">
+          <h5>Sell-out Divisão 1</h5>
+          <p>Se 2T26 não converter os +11,9% de sell-in em sell-out, vem onda de devoluções ou descontos no 2S26 — pressão adicional sobre margem bruta.</p>
+        </div>
+        <div class="risk-card">
+          <h5>Melissa não recuperar tráfego</h5>
+          <p>Se o sell-out da marca seguir caindo em 2T/3T, perde definitivamente o papel de protetor de mix. Pressão estrutural sobre margem consolidada.</p>
+        </div>
+        <div class="risk-card">
+          <h5>Mão de obra + PVC</h5>
+          <p>Reoneração estrutural + fim do ciclo benigno de resina. Margem bruta 2026 caminha para ~43–44% (vs 45,2% em 2025).</p>
+        </div>
+        <div class="risk-card">
+          <h5>Esvaziamento financeiro</h5>
+          <p>Após R$ 380 mi de extraord. em 2026, caixa cai e receita financeira diminui. P/L menos defendido pelo financeiro nos próximos trimestres.</p>
+        </div>
+        <div class="risk-card">
+          <h5>GGB / Pajar não fechar</h5>
+          <p>Carta de intenções não-vinculante pode não evoluir para acordo. Operação continua consumindo valor enquanto a venda não se materializa.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SECTION H: Próximo gatilho -->
+    <!-- ============================================== -->
+    <section class="section">
+      <div class="trigger-callout">
+        <h3>📅 Próximo gatilho de revisão — Resultado 2T26 (publicação esperada ~ago/26)</h3>
+        Checar especificamente:
+        <ol>
+          <li><b>Melissa</b> — sell-in e sell-out voltaram a crescer ou estabilizaram?</li>
+          <li><b>Divisão 1</b> — o sell-in +11,9% do 1T26 converteu em sell-out, ou virou estoque/devolução no canal?</li>
+          <li><b>Margem bruta</b> vs 1T26 (43,1%) — estabilizou, melhorou, piorou?</li>
+          <li><b>GGB / Pajar</b> — evoluiu para acordo vinculante?</li>
+          <li><b>Caixa líquido pós pagamento</b> do extraordinário de R$ 200 mi em jun/26.</li>
+        </ol>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    Material interno · Não distribuir · Não constitui recomendação formal de compra/venda<br>
+    Fontes: Release 1T26 (07/05/2026), Planilha histórica oficial Grendene (2006→1T26) · Dashboard M89 · Compilado em 22/05/2026
+  </footer>
+
+<script>
+// ============================================================
+// M89 Dashboard — Grendene 1T26
+// Charts: lazy-loaded via IntersectionObserver per M89 standard
+// ============================================================
+
+const M89 = {
+  navy:   '#1a2744',
+  blue:   '#2c7be5',
+  green:  '#28a745',
+  red:    '#dc3545',
+  orange: '#e67e22',
+  gray:   '#6c757d',
+  light:  '#f4f5f7'
+};
+
+// Histórico trimestral (extraído da planilha oficial)
+const TRIMESTRES_17 = ['1T22','2T22','3T22','4T22','1T23','2T23','3T23','4T23','1T24','2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'];
+const TRIMESTRES_9  = ['1T24','2T24','3T24','4T24','1T25','2T25','3T25','4T25','1T26'];
+
+// Receita Líquida (R$ milhões)
+const ROL_17 = [517.9, 517.2, 713.9, 763.7, 520.1, 463.6, 689.1, 760.8, 539.4, 480.3, 749.5, 859.4, 563.8, 555.3, 760.1, 705.1, 533.8];
+
+// Receita Líquida / par (R$)
+const ROL_PAR_17 = [18.10, 16.30, 16.12, 17.52, 17.81, 17.28, 16.77, 17.89, 19.08, 17.98, 18.52, 19.53, 22.29, 20.55, 20.93, 19.98, 20.78];
+
+// Volume MI e ME (milhões de pares) — 9 trimestres
+const VOL_MI_9 = [21.96, 22.48, 34.21, 35.50, 17.66, 22.93, 28.99, 28.04, 19.30];
+const VOL_ME_9 = [6.31, 4.24, 6.26, 8.50, 7.64, 4.10, 7.33, 7.25, 6.39];
+
+// Receita bruta MI e ME (R$ mi) — 9 trimestres
+const RB_MI_9 = [528.3, 506.7, 790.5, 829.4, 519.7, 572.5, 771.3, 721.1, 511.7];
+const RB_ME_9 = [134.1, 97.7, 136.0, 214.1, 185.7, 183.7, 253.1, 194.6, 171.2];
+
+// Margem Bruta (%) — 17 trimestres
+const MARGEM_BRUTA_17 = [37.9, 34.2, 39.8, 45.9, 41.9, 40.9, 45.5, 47.7, 44.6, 42.6, 47.9, 50.9, 46.7, 42.0, 46.5, 45.2, 43.1];
+
+// Lucro Bruto (R$ mi) — 17 trimestres
+const LUCRO_BRUTO_17 = [196.2, 176.9, 284.5, 350.2, 218.1, 189.5, 313.4, 362.6, 240.4, 204.7, 358.7, 437.2, 263.5, 233.1, 353.5, 318.9, 230.1];
+
+// Decomposição CPV (% ROL) — 4 trimestres (1T23, 1T24, 1T25, 1T26)
+const CPV_TRIM = ['1T23','1T24','1T25','1T26'];
+const CPV_MAO_OBRA = [21.3, 21.7, 21.6, 24.6];
+const CPV_OGF      = [10.4, 10.9, 10.6, 10.6];
+const CPV_MP       = [26.4, 22.8, 21.1, 21.7];
+const CPV_MB       = [41.9, 44.6, 46.7, 43.1];
+
+// PVC e CPV/par
+const PVC_QUARTERS = ['1T25','2T25','3T25','4T25','1T26'];
+const PVC_RESINA   = [4.71, 4.36, 4.71, 4.50, 5.10];  // R$/par mão de obra, do release ;
+// Na verdade vou usar resina específica do release
+const RESINA_RS    = [4400, 4200, 3800, 3700, 5800];  // R$/ton aproximado do gráfico do release
+const CPV_PAR      = [11.87, 11.92, 11.20, 10.94, 11.82];
+
+// EBITDA contábil (R$ mi) e Margem — 9 trimestres
+const EBITDA_9     = [113.1, 42.7, 166.5, 319.6, 73.5, 71.0, 100.3, 180.4, 66.2];
+const MARGEM_EBITDA_9 = [21.0, 8.9, 22.2, 37.2, 13.0, 12.8, 13.2, 25.6, 12.4];
+// Ajustado (apenas onde temos): 1T25 = 122.2 (22.8%), 1T26 = 83.7 (16.8%)
+const EBITDA_AJ_9      = [null, null, null, null, 122.2, null, null, null, 83.7];
+const MARGEM_EBITDA_AJ_9 = [null, null, null, null, 22.8, null, null, null, 16.8];
+
+// Lucro Líquido contábil (R$ mi) e Margem — 9 trimestres
+const LL_9     = [139.7, 41.6, 223.5, 330.4, 113.4, 143.6, 138.5, 249.4, 102.1];
+const MARGEM_LL_9 = [25.9, 8.7, 29.8, 38.4, 20.1, 25.9, 18.2, 35.4, 19.1];
+// Ajustado nas últimas 5 colunas (release apenas)
+const LL_AJ_9      = [null, null, null, null, 159.8, null, null, null, 122.1];
+const MARGEM_LL_AJ_9 = [null, null, null, null, 28.3, null, null, null, 22.9];
+
+// Caixa líquido (R$ mi) — 5 trimestres realizados + 2 projeções
+const CAIXA_LABELS = ['31/03/25','30/06/25','30/09/25','31/12/25','31/03/26','30/06/26 E','30/09/26 E'];
+const CAIXA_REAL   = [1858.0, 1768.5, 1438.7, 1398.5, 1062.5, null, null];
+const CAIXA_PROJ   = [null, null, null, null, 1062.5, 990, 940];
+
+// ============================================================
+// Chart defaults
+// ============================================================
+Chart.defaults.font.family = "'Segoe UI', system-ui, -apple-system, sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#495057';
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.plugins.legend.labels.padding = 12;
+Chart.defaults.plugins.legend.position = 'bottom';
+
+const gridColor = '#eef0f3';
+const tickColor = '#6c757d';
+
+// ============================================================
+// Chart factories
+// ============================================================
+const builders = {};
+
+builders.rol_par = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRIMESTRES_17,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Receita Líquida (R$ mi)',
+          data: ROL_17,
+          backgroundColor: ROL_17.map((_, i) => i === TRIMESTRES_17.length - 1 ? M89.red : M89.navy),
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line',
+          label: 'Receita Líquida/par (R$)',
+          data: ROL_PAR_17,
+          borderColor: M89.orange,
+          backgroundColor: M89.orange,
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+        y: {
+          type: 'linear',
+          position: 'left',
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, callback: v => v + ' mi' },
+          title: { display: true, text: 'R$ milhões', color: tickColor }
+        },
+        y1: {
+          type: 'linear',
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: M89.orange, callback: v => 'R$ ' + v.toFixed(1) },
+          title: { display: true, text: 'R$/par', color: M89.orange }
+        }
+      }
+    }
+  });
+};
+
+builders.volume_mix = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRIMESTRES_9,
+      datasets: [
+        { label: 'Mercado Interno', data: VOL_MI_9, backgroundColor: M89.navy, borderRadius: 4, stack: 'v' },
+        { label: 'Exportação', data: VOL_ME_9, backgroundColor: M89.orange, borderRadius: 4, stack: 'v' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { color: tickColor } },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, callback: v => v + ' mi' },
+          title: { display: true, text: 'milhões de pares', color: tickColor }
+        }
+      }
+    }
+  });
+};
+
+builders.sell_in_out = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Sell-in', 'Sell-out'],
+      datasets: [
+        { label: 'Melissa', data: [-12.0, -12.7], backgroundColor: M89.red, borderRadius: 4 },
+        { label: 'Divisão 1', data: [11.9, 0.04], backgroundColor: M89.blue, borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, callback: v => v + '%' },
+          title: { display: true, text: '% YoY (Mercado Interno)', color: tickColor }
+        },
+        y: { grid: { display: false }, ticks: { color: tickColor, font: { weight: 'bold' } } }
+      },
+      plugins: {
+        annotation: {}
+      }
+    }
+  });
+};
+
+builders.rb_mix = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRIMESTRES_9,
+      datasets: [
+        { label: 'Mercado Interno', data: RB_MI_9, backgroundColor: M89.navy, borderRadius: 4, stack: 'r' },
+        { label: 'Exportação', data: RB_ME_9, backgroundColor: M89.blue, borderRadius: 4, stack: 'r' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { color: tickColor } },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, callback: v => 'R$ ' + v },
+          title: { display: true, text: 'R$ milhões', color: tickColor }
+        }
+      }
+    }
+  });
+};
+
+builders.margem_bruta = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRIMESTRES_17,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Lucro Bruto (R$ mi)',
+          data: LUCRO_BRUTO_17,
+          backgroundColor: LUCRO_BRUTO_17.map((_, i) => i === TRIMESTRES_17.length - 1 ? M89.red : M89.navy),
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line',
+          label: 'Margem Bruta (%)',
+          data: MARGEM_BRUTA_17,
+          borderColor: M89.orange,
+          backgroundColor: M89.orange,
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+        y: {
+          position: 'left',
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor },
+          title: { display: true, text: 'R$ milhões', color: tickColor }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: M89.orange, callback: v => v + '%' },
+          title: { display: true, text: 'Margem Bruta %', color: M89.orange },
+          suggestedMin: 30,
+          suggestedMax: 55
+        }
+      }
+    }
+  });
+};
+
+builders.cpv_decomp = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: CPV_TRIM,
+      datasets: [
+        { label: 'Mão de obra', data: CPV_MAO_OBRA, backgroundColor: M89.red, borderRadius: 4, stack: 'c' },
+        { label: 'OGF', data: CPV_OGF, backgroundColor: M89.gray, borderRadius: 4, stack: 'c' },
+        { label: 'Matéria-prima', data: CPV_MP, backgroundColor: M89.blue, borderRadius: 4, stack: 'c' },
+        { label: 'Lucro Bruto (% ROL)', data: CPV_MB, backgroundColor: M89.green, borderRadius: 4, stack: 'c' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { color: tickColor } },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          max: 100,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, callback: v => v + '%' },
+          title: { display: true, text: '% da Receita Líquida', color: tickColor }
+        }
+      }
+    }
+  });
+};
+
+builders.pvc = function(ctx) {
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: PVC_QUARTERS,
+      datasets: [
+        {
+          label: 'Resina PVC (R$/ton, escala secundária)',
+          data: RESINA_RS,
+          borderColor: M89.gray,
+          backgroundColor: 'rgba(108,117,125,0.15)',
+          fill: true,
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 3,
+          yAxisID: 'y1'
+        },
+        {
+          label: 'CPV / par (R$)',
+          data: CPV_PAR,
+          borderColor: M89.red,
+          backgroundColor: M89.red,
+          borderWidth: 2.5,
+          tension: 0.3,
+          pointRadius: 4,
+          yAxisID: 'y'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+        y: {
+          position: 'left',
+          grid: { color: gridColor },
+          ticks: { color: M89.red, callback: v => 'R$ ' + v.toFixed(1) },
+          title: { display: true, text: 'CPV / par (R$)', color: M89.red }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: M89.gray, callback: v => (v/1000).toFixed(1) + ' k' },
+          title: { display: true, text: 'Resina PVC R$/ton', color: M89.gray }
+        }
+      }
+    }
+  });
+};
+
+builders.ebitda = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRIMESTRES_9,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'EBITDA contábil (R$ mi)',
+          data: EBITDA_9,
+          backgroundColor: M89.navy,
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          type: 'bar',
+          label: 'EBITDA ajustado (R$ mi)',
+          data: EBITDA_AJ_9,
+          backgroundColor: M89.blue,
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line',
+          label: 'Margem EBITDA (%)',
+          data: MARGEM_EBITDA_9,
+          borderColor: M89.orange,
+          backgroundColor: M89.orange,
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+        y: {
+          position: 'left',
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor },
+          title: { display: true, text: 'R$ milhões', color: tickColor }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: M89.orange, callback: v => v + '%' },
+          title: { display: true, text: 'Margem EBITDA %', color: M89.orange }
+        }
+      }
+    }
+  });
+};
+
+builders.ll = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: TRIMESTRES_9,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'LL contábil (R$ mi)',
+          data: LL_9,
+          backgroundColor: M89.navy,
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          type: 'bar',
+          label: 'LL ajustado (R$ mi)',
+          data: LL_AJ_9,
+          backgroundColor: M89.blue,
+          borderRadius: 4,
+          yAxisID: 'y'
+        },
+        {
+          type: 'line',
+          label: 'Margem Líquida (%)',
+          data: MARGEM_LL_9,
+          borderColor: M89.orange,
+          backgroundColor: M89.orange,
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor } },
+        y: {
+          position: 'left',
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor },
+          title: { display: true, text: 'R$ milhões', color: tickColor }
+        },
+        y1: {
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: M89.orange, callback: v => v + '%' },
+          title: { display: true, text: 'Margem Líquida %', color: M89.orange }
+        }
+      }
+    }
+  });
+};
+
+builders.caixa = function(ctx) {
+  return new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: CAIXA_LABELS,
+      datasets: [
+        {
+          label: 'Caixa Líquido — realizado',
+          data: CAIXA_REAL,
+          backgroundColor: CAIXA_REAL.map((_, i) => i === 4 ? M89.orange : M89.navy),
+          borderRadius: 5,
+          stack: 'c'
+        },
+        {
+          label: 'Caixa Líquido — projetado',
+          data: CAIXA_PROJ,
+          backgroundColor: 'rgba(230, 126, 34, 0.45)',
+          borderColor: M89.orange,
+          borderWidth: 1.5,
+          borderDash: [4, 4],
+          borderRadius: 5,
+          stack: 'c'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 10.5 } } },
+        y: {
+          beginAtZero: true,
+          grid: { color: gridColor },
+          ticks: { color: tickColor, callback: v => 'R$ ' + v + ' mi' },
+          title: { display: true, text: 'R$ milhões', color: tickColor }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y ? `${ctx.dataset.label}: R$ ${ctx.parsed.y.toLocaleString('pt-BR')} mi` : null
+          }
+        }
+      }
+    }
+  });
+};
+
+// ============================================================
+// Lazy load via IntersectionObserver (M89 standard)
+// ============================================================
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const container = entry.target;
+      const chartKey = container.dataset.chart;
+      if (chartKey && builders[chartKey] && !container.dataset.loaded) {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          builders[chartKey](canvas.getContext('2d'));
+          container.dataset.loaded = 'true';
+        }
+      }
+      observer.unobserve(container);
+    }
+  });
+}, { rootMargin: '100px 0px', threshold: 0.05 });
+
+document.querySelectorAll('[data-chart]').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
