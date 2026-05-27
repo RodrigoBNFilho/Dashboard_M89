@@ -66,6 +66,32 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background
   min-width: 110px; flex: 1;
 }
 .top-bar .metric-box:last-child { border-right: none; }
+
+/* Grupos com cabecalho (Rentabilidade / Metricas de Risco / Movimentacoes) */
+.kpi-group {
+  display: flex; flex-direction: column;
+  flex: 1 1 0; min-width: 0;
+  border-right: 1px solid var(--border);
+}
+.kpi-group:last-child { border-right: none; }
+.kpi-group-header {
+  background: #2c4870; color: white;
+  font-size: 11px; font-weight: 700;
+  padding: 6px 14px;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.kpi-group-boxes {
+  display: flex; flex: 1;
+}
+.kpi-group-boxes .metric-box,
+.kpi-group-boxes .changes-box {
+  border-right: 1px solid var(--border);
+}
+.kpi-group-boxes .metric-box:last-child,
+.kpi-group-boxes .changes-box:last-child {
+  border-right: none;
+}
 .metric-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
 .metric-value { font-size: 26px; font-weight: 700; }
 .metric-sub { font-size: 11px; color: var(--gray); }
@@ -279,14 +305,19 @@ table.perf-table .col-sep { border-left: 2px solid var(--navy); }
   }
   .badge-live { font-size: 10px; padding: 2px 8px; }
 
-  /* KPIs no topo: 2 colunas em vez de 3-4 */
-  .top-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-  .top-bar .metric-box {
+  /* KPIs no topo: cada grupo ocupa linha inteira; boxes em 2 colunas dentro do grupo */
+  .top-bar { display: flex; flex-direction: column; gap: 0; }
+  .kpi-group { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+  .kpi-group:last-child { border-bottom: none; }
+  .kpi-group-boxes { display: grid; grid-template-columns: 1fr 1fr; }
+  .kpi-group-boxes .metric-box,
+  .kpi-group-boxes .changes-box {
     border-right: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     padding: 10px 12px; min-width: 0;
   }
-  .top-bar .metric-box:nth-child(2n) { border-right: none; }
+  .kpi-group-boxes .metric-box:nth-child(2n) { border-right: none; }
+  .kpi-group-header { padding: 5px 12px; font-size: 10px; }
   .metric-value { font-size: 20px; }
   .metric-label { font-size: 10px; }
   .metric-sub { font-size: 10px; }
@@ -642,6 +673,12 @@ function fmtMoneyShort(v) {
 function renderTopBar(containerId, mtdF, mtdB, ytdF, ytdB, added, removed, mtdLabel, ytdLabel, changeLabel, showRisk, trades) {
   const c = document.getElementById(containerId);
   let html = '';
+
+  // === GRUPO 1: RENTABILIDADE ===
+  const numBoxesRent = (ytdF != null) ? 4 : 2;
+  html += `<div class="kpi-group" style="flex: ${numBoxesRent} 1 0">`;
+  html += `<div class="kpi-group-header">Rentabilidade</div>`;
+  html += `<div class="kpi-group-boxes">`;
   html += `<div class="metric-box">
     <div class="metric-label">CARTEIRA</div>
     <div class="metric-value ${pctClass(mtdF)}">${fmtPct(mtdF)}</div>
@@ -664,8 +701,14 @@ function renderTopBar(containerId, mtdF, mtdB, ytdF, ytdB, added, removed, mtdLa
       <div class="metric-sub">${ytdLabel}</div>
     </div>`;
   }
+  html += `</div></div>`;
+
+  // === GRUPO 2: METRICAS DE RISCO ===
   if (showRisk && DATA.risk) {
     const r = DATA.risk;
+    html += `<div class="kpi-group" style="flex: 5 1 0">`;
+    html += `<div class="kpi-group-header">Métricas de Risco</div>`;
+    html += `<div class="kpi-group-boxes">`;
     html += `<div class="metric-box">
       <div class="metric-label">SHARPE</div>
       <div class="metric-value" style="color:var(--navy)">${r.sharpe.toFixed(2)}</div>
@@ -691,9 +734,15 @@ function renderTopBar(containerId, mtdF, mtdB, ytdF, ytdB, added, removed, mtdLa
       <div class="metric-value" style="color:var(--navy)">${r.vol_bench.toFixed(1)}%</div>
       <div class="metric-sub">Anualizada</div>
     </div>`;
+    html += `</div></div>`;
   }
+
+  // === GRUPO 3: MOVIMENTACOES ===
   if (trades && trades.length > 0) {
-    html += `<div class="changes-box"><div class="metric-label">MOVIMENTAÇÕES</div>`;
+    html += `<div class="kpi-group" style="flex: 0 0 240px">`;
+    html += `<div class="kpi-group-header">Movimentações</div>`;
+    html += `<div class="kpi-group-boxes">`;
+    html += `<div class="changes-box">`;
     html += `<div class="trades-list">`;
     trades.forEach(t => {
       const cls = t.type === 'buy' ? 'added' : 'removed';
@@ -701,13 +750,18 @@ function renderTopBar(containerId, mtdF, mtdB, ytdF, ytdB, added, removed, mtdLa
       html += `<span class="change-tag ${cls}">${arrow} ${t.nome} <span class="trade-vol">${fmtMoneyShort(t.value)}</span></span>`;
     });
     html += `</div></div>`;
+    html += `</div></div>`;
   } else if (added.length > 0 || removed.length > 0) {
-    // Fallback: se nao tem trades detalhados (compatibilidade), mostra adicoes/saidas
-    html += `<div class="changes-box"><div class="metric-label">MOVIMENTAÇÕES</div>`;
+    html += `<div class="kpi-group" style="flex: 0 0 240px">`;
+    html += `<div class="kpi-group-header">Movimentações</div>`;
+    html += `<div class="kpi-group-boxes">`;
+    html += `<div class="changes-box">`;
     added.forEach(t => { html += `<span class="change-tag added">&#9650; ${t}</span>`; });
     removed.forEach(t => { html += `<span class="change-tag removed">&#9660; ${t}</span>`; });
     html += `</div>`;
+    html += `</div></div>`;
   }
+
   c.innerHTML = html;
 }
 
