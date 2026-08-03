@@ -506,6 +506,46 @@ body.pwd-locked .container { display: none !important; }
   color: var(--gray); border-top: 1px solid var(--border);
 }
 
+/* ─── Aba Noticias ─── */
+.news-pills {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 24px;
+  background: var(--gray-light); border-bottom: 1px solid var(--border);
+}
+.news-pill {
+  padding: 6px 14px; background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 500;
+  color: var(--navy); transition: all 0.15s; font-family: inherit;
+}
+.news-pill:hover { border-color: var(--blue); color: var(--blue); }
+.news-pill.active { background: var(--navy); color: white; border-color: var(--navy); }
+.news-group { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+.news-group:last-child { border-bottom: none; }
+.news-group.hidden { display: none; }
+.news-group-title {
+  font-size: 13px; font-weight: 700; color: var(--navy); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px;
+  border-bottom: 2px solid var(--gray-light); display: flex; align-items: baseline; gap: 8px;
+}
+.news-group-title small { font-size: 10px; color: var(--gray); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.news-item {
+  display: block; padding: 10px 0; border-bottom: 1px dashed var(--border);
+  color: inherit; text-decoration: none; transition: background 0.15s;
+}
+.news-item:last-child { border-bottom: none; }
+.news-item:hover { background: var(--gray-light); }
+.news-title { font-size: 13px; color: var(--navy); font-weight: 600; line-height: 1.35; margin-bottom: 4px; }
+.news-item:hover .news-title { color: var(--blue); text-decoration: underline; }
+.news-meta { font-size: 11px; color: var(--gray); display: flex; gap: 8px; align-items: center; }
+.news-source { color: var(--blue); font-weight: 500; }
+.news-empty { text-align: center; padding: 40px; color: var(--gray); font-size: 13px; }
+
+@media (max-width: 768px) {
+  .news-group { padding: 12px 12px; }
+  .news-group-title { font-size: 12px; }
+  .news-title { font-size: 12px; }
+  .news-meta { font-size: 10px; }
+}
+
 /* Mobile responsivo pra aba Cotacoes ao vivo */
 @media (max-width: 768px) {
   .tab-nav { padding: 12px 12px 0; }
@@ -596,6 +636,7 @@ function unlockDashboard() {
 <div class="tab-nav">
   <button class="tab-btn active" onclick="switchTab(event,'dashboard')">Dashboard</button>
   <button class="tab-btn" onclick="switchTab(event,'cotacoes')">Cotações ao vivo</button>
+  <button class="tab-btn" onclick="switchTab(event,'noticias')">Notícias</button>
 </div>
 
 <div id="tab-dashboard" class="tab-content active">
@@ -743,6 +784,22 @@ function unlockDashboard() {
     Posições referem-se a <span id="cot-posdata">—</span>. Preços via Yahoo Finance, atraso de ~15 minutos.
   </div>
 </div><!-- /tab-cotacoes -->
+
+<div id="tab-noticias" class="tab-content">
+  <div class="cot-header">
+    NOTÍCIAS
+    <span class="cot-badge">Bing News • BR</span>
+    <span class="cot-updated" id="news-updated-at">—</span>
+    <button class="cot-refresh" id="news-refresh-btn" onclick="loadNoticias(true)">↻ Atualizar</button>
+  </div>
+  <div class="news-pills" id="news-pills"></div>
+  <div id="news-body" style="background: var(--white);">
+    <div class="news-empty">Clique em "Atualizar" ou entre nesta aba pela primeira vez para carregar as notícias.</div>
+  </div>
+  <div class="cot-footer">
+    Manchetes agregadas via Bing News (múltiplas fontes brasileiras). Clique no título para abrir a matéria completa na fonte original.
+  </div>
+</div><!-- /tab-noticias -->
 
 </div><!-- /container -->
 
@@ -1714,6 +1771,9 @@ function switchTab(e, name) {
   if (name === 'cotacoes' && !window.__cotacoesJaCarregou) {
     loadCotacoesLive(false);
   }
+  if (name === 'noticias' && !window.__noticiasJaCarregou) {
+    loadNoticias(false);
+  }
 }
 
 // ─── Cotacoes ao vivo (Yahoo Finance via Cloudflare Worker proxy) ─────────
@@ -1805,7 +1865,7 @@ function fmtBR(n, dec) {
   if (n == null || isNaN(n)) return '—';
   return Number(n).toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 }
-function fmtPct(n) {
+function fmtPctColorido(n) {
   if (n == null || isNaN(n)) return '—';
   const cls = n >= 0 ? 'cot-pos' : 'cot-neg';
   const sig = n >= 0 ? '+' : '';
@@ -1837,9 +1897,9 @@ function renderCotacoesTable(rows, caixa) {
     html += `<td>${fmtBR(r.qty, 0)}</td>`;
     html += `<td>${fmtBR(r.price, 2)}</td>`;
     html += `<td>${fmtBR(r.financeiro, 0)}</td>`;
-    html += `<td>${fmtPct(r.dayVar)}</td>`;
-    html += `<td>${fmtPct(r.monthVar)}</td>`;
-    html += `<td>${fmtPct(r.ytdVar)}</td></tr>`;
+    html += `<td>${fmtPctColorido(r.dayVar)}</td>`;
+    html += `<td>${fmtPctColorido(r.monthVar)}</td>`;
+    html += `<td>${fmtPctColorido(r.ytdVar)}</td></tr>`;
   }
 
   // Linha do CAIXA
@@ -1864,6 +1924,154 @@ function renderCotacoesTable(rows, caixa) {
   const ts = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const tsEl = document.getElementById('cot-updated-at');
   if (tsEl) tsEl.textContent = `atualizado às ${ts}`;
+}
+
+// ─── Aba Noticias (Bing News RSS via Worker) ───────────────────────────────
+// So aceita noticias dos ultimos NEWS_MAX_DAYS dias e de fontes confiaveis.
+const NEWS_MAX_DAYS = 15;
+const NEWS_TRUSTED_SOURCES = [
+  'valor',        // Valor Econômico, Valor Investe, Valor Pipeline
+  'brazil journal',
+  'infomoney',
+  'estadão','estadao',
+  'o globo','globo',
+  'folha',
+  'pipeline',
+  'terra',
+  'money times','moneytimes',
+  'exame',
+  'reuters',
+  'bloomberg',
+  'seu dinheiro',
+  'suno',
+];
+
+function sourceIsTrusted(source) {
+  if (!source) return false;
+  const s = source.toLowerCase();
+  return NEWS_TRUSTED_SOURCES.some(t => s.includes(t));
+}
+
+async function fetchNewsRSS(query) {
+  const resp = await fetch(`${WORKER_URL}/news?q=${encodeURIComponent(query)}`);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const xmlText = await resp.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'text/xml');
+  if (doc.querySelector('parsererror')) throw new Error('XML invalido');
+  const rawItems = Array.from(doc.querySelectorAll('item'));
+  const cutoff = new Date(Date.now() - NEWS_MAX_DAYS * 86400 * 1000);
+  const items = rawItems.map(it => {
+    const title = it.querySelector('title')?.textContent || '';
+    const link = it.querySelector('link')?.textContent || '';
+    const pubDate = it.querySelector('pubDate')?.textContent || '';
+    const srcEl = it.getElementsByTagName('News:Source')[0];
+    const source = srcEl?.textContent || '';
+    return { title, link, pubDate: new Date(pubDate), source };
+  }).filter(n => {
+    if (isNaN(n.pubDate)) return false;
+    if (n.pubDate < cutoff) return false;         // filtro de idade (15 dias)
+    if (!sourceIsTrusted(n.source)) return false; // filtro de fonte
+    return true;
+  }).sort((a, b) => b.pubDate - a.pubDate);       // mais recente primeiro
+  return items.slice(0, 8);
+}
+
+function timeAgo(date) {
+  if (!(date instanceof Date) || isNaN(date)) return '';
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return `há ${seconds}s`;
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `há ${mins}min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `há ${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `há ${days}d`;
+  return date.toLocaleDateString('pt-BR');
+}
+
+function renderNewsItems(items) {
+  if (!items || !items.length) return '<div class="news-empty">Nenhuma notícia encontrada.</div>';
+  return items.map(n => `
+    <a class="news-item" href="${n.link}" target="_blank" rel="noopener noreferrer">
+      <div class="news-title">${n.title}</div>
+      <div class="news-meta">
+        <span class="news-source">${n.source || 'Fonte'}</span>
+        <span>•</span>
+        <span>${timeAgo(n.pubDate)}</span>
+      </div>
+    </a>
+  `).join('');
+}
+
+async function loadNoticias(forceRefresh) {
+  window.__noticiasJaCarregou = true;
+  const body = document.getElementById('news-body');
+  const pillsEl = document.getElementById('news-pills');
+  const btn = document.getElementById('news-refresh-btn');
+  btn.disabled = true;
+  body.innerHTML = '<div class="news-empty">Buscando notícias…</div>';
+
+  const positions = (DATA.positions_atual || []).slice();
+  const stocks = positions.filter(p => p.ticker !== 'CAIXA');
+  const macroQuery = 'Selic Copom IPCA Ibovespa Brasil';
+
+  const [macroItems, ...stockResults] = await Promise.all([
+    fetchNewsRSS(macroQuery).catch(err => ({ error: err.message })),
+    ...stocks.map(pos =>
+      fetchNewsRSS(`${pos.nome} ${pos.ticker}`).catch(err => ({ error: err.message }))
+    ),
+  ]);
+
+  // Monta pills
+  let pillsHtml = `<button class="news-pill active" onclick="filterNoticias(event, 'todas')">Todas</button>`;
+  pillsHtml += `<button class="news-pill" onclick="filterNoticias(event, 'macro')">Macro</button>`;
+  stocks.forEach(pos => {
+    pillsHtml += `<button class="news-pill" onclick="filterNoticias(event, '${pos.ticker}')">${pos.nome}</button>`;
+  });
+  pillsEl.innerHTML = pillsHtml;
+
+  // Monta grupos
+  let html = '';
+  html += `<div class="news-group" data-group="macro">`;
+  html += `<div class="news-group-title">Macro <small>Selic • Copom • IPCA • Ibovespa</small></div>`;
+  if (macroItems && macroItems.error) {
+    html += `<div class="news-empty" style="padding:12px 0;">Erro: ${macroItems.error}</div>`;
+  } else {
+    html += renderNewsItems(macroItems);
+  }
+  html += `</div>`;
+
+  stocks.forEach((pos, idx) => {
+    const items = stockResults[idx];
+    html += `<div class="news-group" data-group="${pos.ticker}">`;
+    html += `<div class="news-group-title">${pos.nome} <small>${pos.ticker}</small></div>`;
+    if (items && items.error) {
+      html += `<div class="news-empty" style="padding:12px 0;">Erro: ${items.error}</div>`;
+    } else {
+      html += renderNewsItems(items);
+    }
+    html += `</div>`;
+  });
+
+  body.innerHTML = html;
+
+  const ts = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const tsEl = document.getElementById('news-updated-at');
+  if (tsEl) tsEl.textContent = `atualizado às ${ts}`;
+  btn.disabled = false;
+}
+
+function filterNoticias(e, key) {
+  document.querySelectorAll('.news-pill').forEach(p => p.classList.remove('active'));
+  if (e && e.currentTarget) e.currentTarget.classList.add('active');
+  document.querySelectorAll('.news-group').forEach(g => {
+    if (key === 'todas' || g.getAttribute('data-group') === key) {
+      g.classList.remove('hidden');
+    } else {
+      g.classList.add('hidden');
+    }
+  });
 }
 </script>
 </body>
