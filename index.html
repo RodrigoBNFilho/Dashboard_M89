@@ -961,7 +961,7 @@ function unlockDashboard() {
     <div class="news-empty">Carregando dividendos…</div>
   </div>
   <div class="cot-footer">
-    <b>Recebido no período</b>: soma dos dividendos creditados na M89 (fonte: Base Relatorio > Dividendos). Filtra por LTM (rolling 12 meses até hoje) ou ano específico.
+    <b>Recebido no ano</b>: soma dos dividendos da Base Relatorio > Dividendos filtrados pelo ano selecionado (usa a coluna Data da Base, que reflete a data que o Bloomberg exporta).
     <b>DY LTM</b>: soma dos dividendos por ação nos últimos 12 meses ÷ preço atual (fonte: Yahoo Finance).
   </div>
 </div><!-- /tab-dividendos -->
@@ -2898,7 +2898,7 @@ function renderDividendos() {
   const yahooMap = window.__divsYahooMap || {};
   const positions = (DATA.positions_atual || []).filter(p => p.ticker !== 'CAIXA');
   const sel = document.getElementById('divs-period-select');
-  const periodo = sel ? sel.value : 'LTM';
+  const periodo = sel ? sel.value : String(new Date().getFullYear());
   const divsAgg = agregarDivsPorTicker(periodo);
 
   const rows = positions.map(pos => {
@@ -2915,7 +2915,7 @@ function renderDividendos() {
 
   rows.sort((a, b) => (b.recebido || 0) - (a.recebido || 0));
 
-  const labelPeriodo = periodo === 'LTM' ? 'Recebido LTM (R$)' : `Recebido ${periodo} (R$)`;
+  const labelPeriodo = `Recebido ${periodo} (R$)`;
   let totalRec = 0;
   let html = '<div style="padding:20px 24px;overflow-x:auto;">';
   html += '<table class="cot-table"><thead><tr>';
